@@ -156,14 +156,20 @@ function initAuthObserver() {
             currentUser = user;
             
             if (!user.emailVerified) {
+                // If on main page, force them to verification screen
+                if (!isAuthPage) {
+                    window.location.href = 'auth.html';
+                    return;
+                }
                 verifyBanner?.classList.remove('hidden');
             } else {
                 verifyBanner?.classList.add('hidden');
+                // If they just got verified and are on auth page, send home
+                if (isAuthPage) window.location.href = 'index.html';
             }
 
             updateNavUI(user);
             startFavoritesListener(user.uid);
-            if (isAuthPage && user.emailVerified) window.location.href = 'index.html';
         } else {
             currentUser = null;
             savedIds    = [];

@@ -65,6 +65,9 @@ onAuthStateChanged(auth, async (user) => {
         await user.reload();
         
         if (user.emailVerified) {
+            // Force refresh token to update claims (like email_verified) for Firestore
+            await user.getIdToken(true);
+            
             // Only redirect if NOT in special modes
             if (mode !== 'reset' && mode !== 'verify') {
                 window.location.href = 'index.html';
@@ -96,6 +99,8 @@ refreshVerifyBtn?.addEventListener('click', async () => {
     if (user) {
         await user.reload();
         if (user.emailVerified) {
+            // Force refresh the ID token so security rules recognize the verified status
+            await user.getIdToken(true);
             showToast('Identity Activated!', 'success');
             window.location.href = 'index.html';
         } else {
@@ -187,6 +192,7 @@ authForm?.addEventListener('submit', async (e) => {
                     showToast('Account recovered! A new link has been sent.', 'success');
                     switchView('verify');
                 } else {
+                    await user.getIdToken(true);
                     showToast('Account already exists. Welcome back!', 'success');
                     window.location.href = 'index.html';
                 }

@@ -164,6 +164,19 @@ function initAuthObserver() {
                 verifyBanner?.classList.remove('hidden');
             } else {
                 verifyBanner?.classList.add('hidden');
+                
+                // Safety: If they just arrived and are verified, ensure token is fresh
+                // so Firestore matches the verified status.
+                try {
+                    const token = await user.getIdTokenResult();
+                    if (!token.claims.email_verified) {
+                        console.log('Refreshing token for Firestore verification...');
+                        await user.getIdToken(true);
+                    }
+                } catch (e) {
+                    console.error('Token refresh check failed:', e);
+                }
+
                 // If they just got verified and are on auth page, send home
                 if (isAuthPage) window.location.href = 'index.html';
             }
@@ -206,7 +219,12 @@ function startFavoritesListener(uid) {
         savedIds = [];
         snap.forEach(d => savedIds.push(d.id));
         renderResources(); // Re-render with updated heart states
-    }, err => console.error('Favorites error:', err));
+    }, err => {
+        console.error('Favorites error:', err);
+        if (err.code === 'permission-denied') {
+            console.warn('Favorites access denied. Possible stale session.');
+        }
+    });
 }
 
 // ================================================================

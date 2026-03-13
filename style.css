@@ -131,15 +131,13 @@ h1, h2, h3 {
 
 /* --- LOGO BOX --- */
 .logo-box-premium {
-    width: 38px; height: 38px;
+    width: 40px; height: 40px;
     background: var(--accent-primary);
-    border-radius: 11px;
+    border-radius: 12px;
     display: flex; align-items: center; justify-content: center;
-    font-weight: 800; font-size: 13px;
-    color: white;
+    font-weight: 900; font-size: 14px;
+    color: var(--surface-white);
     flex-shrink: 0;
-    text-transform: uppercase;
-    letter-spacing: -0.02em;
 }
 
 /* --- CATEGORY TABS --- */
@@ -607,15 +605,12 @@ h1, h2, h3 {
 .back-link:hover { color: var(--text-pure); }
 
 .logo-icon {
-    width: 46px; height: 46px;
+    width: 48px; height: 48px;
     background: var(--accent-primary);
-    border-radius: 13px;
+    border-radius: 14px;
     display: flex; align-items: center; justify-content: center;
-    font-weight: 800; font-size: 16px; 
-    color: white;
+    font-weight: 900; font-size: 18px; color: white;
     margin-bottom: 1.5rem;
-    text-transform: uppercase;
-    letter-spacing: -0.02em;
 }
 
 .subtitle {

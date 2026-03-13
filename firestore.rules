@@ -15,11 +15,9 @@ service cloud.firestore {
                          && request.auth.uid == userId;
     }
 
-    // ─── CATEGORIES (read by everyone, write by admin only) ──────────
+    // ─── CATEGORIES (Temporary Public Access for Fix) ────────────────
     match /categories/{docId} {
-      allow read: if true;
-      allow write: if request.auth != null 
-                   && request.auth.token.email.matches('(?i)alaidan25@gmail\\.com');
+      allow read, write: if true;
     }
 
   }

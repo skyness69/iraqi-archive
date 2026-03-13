@@ -311,6 +311,12 @@
                 <svg class="w-5 h-5 text-slate-500 group-hover:text-green-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
                 <span>نشر مورد جديد</span>
             </a>
+            <a href="#categories" class="nav-link flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-white/5 transition-all group">
+                <div class="flex items-center space-x-3 rtl:space-x-reverse">
+                    <svg class="w-5 h-5 text-slate-500 group-hover:text-orange-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
+                    <span>إدارة الأقسام</span>
+                </div>
+            </a>
 
             <p class="px-4 text-[10px] font-black text-slate-500 uppercase mb-2 mt-8">حالة الخادم</p>
             <div class="px-4 py-3">
@@ -453,7 +459,7 @@
                 </div>
             </div>
 
-            <!-- Resources Table (Glass Card Wrapper) -->
+            <!-- Resources Table -->
             <div id="resources-table" class="glass-card overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full text-right border-collapse">
@@ -472,6 +478,50 @@
                     </table>
                 </div>
             </div>
+
+            <!-- Categories View -->
+            <section id="view-categories" class="hidden animate-in admin-section">
+                <div class="mb-10">
+                    <h1 class="text-2xl md:text-3xl font-black text-white leading-none">إدارة الأقسام</h1>
+                    <p class="text-slate-400 mt-2 text-sm">إضافة أو تعديل أو حذف الأقسام الرئيسية للأرشيف.</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+                    <!-- Add Category Form -->
+                    <div class="lg:col-span-1">
+                        <div class="glass-card p-6 border-orange-500/10">
+                            <h3 class="text-sm font-black text-white uppercase tracking-widest mb-6">إضافة قسم جديد</h3>
+                            <form id="cat-form" class="space-y-4">
+                                <div class="space-y-2">
+                                    <label class="text-[10px] font-black text-slate-500 uppercase">اسم القسم</label>
+                                    <input type="text" id="c-name" required placeholder="مثال: ذكاء اصطناعي"
+                                        class="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-600 focus:outline-none focus:border-orange-500 transition-colors">
+                                </div>
+                                <button type="submit" id="cat-add-btn" class="w-full bg-white text-black py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-orange-500 transition-all active:scale-95">
+                                    <span>إضافة قسم</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Category Table -->
+                    <div class="lg:col-span-2">
+                        <div class="glass-card overflow-hidden">
+                            <table class="w-full text-right">
+                                <thead>
+                                    <tr class="border-b border-white/10 bg-white/5 text-slate-400 text-[10px] font-black uppercase tracking-[0.2em]">
+                                        <th class="px-6 py-4">اسم القسم</th>
+                                        <th class="px-6 py-4 text-left">الإجراءات</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="category-tbody" class="divide-y divide-white/5">
+                                    <!-- Populated by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
             <!-- Bug Reports View -->
             <section id="view-bug-reports" class="hidden animate-in admin-section">

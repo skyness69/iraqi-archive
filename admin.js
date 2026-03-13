@@ -36,6 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('logout-btn')?.addEventListener('click', () => signOut(auth));
     document.getElementById('add-resource-form')?.addEventListener('submit', handleAddResource);
     document.getElementById('edit-form')?.addEventListener('submit', handleEditResource);
+    document.getElementById('cat-form')?.addEventListener('submit', handleCategorySubmit);
     document.getElementById('close-modal')?.addEventListener('click', closeEditModal);
 
     // Mobile Sidebar Toggles
@@ -105,9 +106,10 @@ function switchSection(name) {
     const publishSec = document.getElementById('publish-wrapper');
     const resourceTableSec = document.getElementById('resources-table');
     const bugSec = document.getElementById('view-bug-reports');
+    const catSec = document.getElementById('view-categories');
     
     // Hide all
-    [dashboardSec, publishSec, resourceTableSec, bugSec].forEach(s => s?.classList.add('hidden'));
+    [dashboardSec, publishSec, resourceTableSec, bugSec, catSec].forEach(s => s?.classList.add('hidden'));
     
     // Deactivate all nav links
     document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
@@ -126,6 +128,9 @@ function switchSection(name) {
     } else if (name === 'add-resource') {
         publishSec?.classList.remove('hidden');
         document.querySelector('a[href="#add-resource"]')?.classList.add('active');
+    } else if (name === 'categories') {
+        catSec?.classList.remove('hidden');
+        document.querySelector('a[href="#categories"]')?.classList.add('active');
     }
 }
 
@@ -147,7 +152,7 @@ function startLiveSync() {
         resources.sort((a,b) => (a.title || '').localeCompare(b.title || ''));
 
         renderResourcesTable(resources);
-        // renderCategoriesList(categories); // No category list in current HTML
+        renderCategoriesList(categories);
         updateCategoryOptions(categories);
         updateStatsView(resources);
         fetchBugReports(); // Init bug sync
@@ -225,7 +230,7 @@ function renderBugReports(items) {
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                         حل وإزالة
                     </button>
-                </div>v>
+                </div>
             </div>
         </div>
     `).join('');
@@ -447,11 +452,12 @@ function updateStatsView(items) {
 }
 
 function updateCategoryOptions(cats) {
-    // Note: In this version of the HTML, the options are static in index.html but we can dynamically sync if needed.
-    // However, the user-defined categories are handled in specific ways. 
-    // We will keep the default implementation but ensure it targets 'category' and 'e-category'
     const fCat = document.getElementById('category');
     const eCat = document.getElementById('e-category');
     if (!fCat || !eCat) return;
-    // ...
+
+    const options = cats.map(c => `<option value="${escQ(c)}">${escHtml(c)}</option>`).join('');
+    
+    fCat.innerHTML = `<option value="">اختر تصنيف</option>` + options;
+    eCat.innerHTML = options;
 }

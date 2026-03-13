@@ -1,9 +1,16 @@
+/**
+ * auth.js — Iraqi Archive Identity System
+ * Handles Login, Sign-up, and Email Verification
+ */
+
 import { 
     auth, 
     signInWithEmailAndPassword, 
     createUserWithEmailAndPassword, 
     onAuthStateChanged,
-    sendPasswordResetEmail 
+    sendPasswordResetEmail,
+    sendEmailVerification,
+    signOut
 } from './firebase-config.js';
 
 import { showToast } from './utils.js';
@@ -32,7 +39,13 @@ const resetBtnText = document.getElementById('reset-btn-text');
 const resetBtnSpinner = document.getElementById('reset-btn-spinner');
 const backToLoginBtn = document.getElementById('back-to-login');
 
-let mode = 'login'; // 'login', 'signup', or 'reset'
+// Verification View Elements
+const verifyView = document.getElementById('verify-view');
+const refreshVerifyBtn = document.getElementById('refresh-verify-btn');
+const resendVerifyBtn = document.getElementById('resend-verify-btn');
+const verifyBackToLogin = document.getElementById('verify-back-to-login');
+
+let mode = 'login'; // 'login', 'signup', 'reset', or 'verify'
 
 // --- ERROR MAPPING ---
 const errorMessages = {
@@ -46,43 +59,84 @@ const errorMessages = {
 };
 
 // --- AUTH STATE OBSERVER ---
-onAuthStateChanged(auth, (user) => {
-    if (user && mode !== 'reset') {
-        window.location.href = 'index.html';
+onAuthStateChanged(auth, async (user) => {
+    if (user) {
+        // Critical: Reload user data to get latest verification status
+        await user.reload();
+        
+        if (user.emailVerified) {
+            if (mode !== 'reset') {
+                window.location.href = 'index.html';
+            }
+        } else {
+            // User is logged in but NOT verified
+            switchView('verify');
+        }
+    } else {
+        // If not logged in and we are in verify mode, go back to login
+        if (mode === 'verify') switchView('login');
     }
 });
 
-// --- TOGGLE ACTIONS ---
-forgotPasswordLink.addEventListener('click', () => {
-    switchView('reset');
+// --- UI ACTIONS ---
+forgotPasswordLink?.addEventListener('click', () => switchView('reset'));
+backToLoginBtn?.addEventListener('click', () => switchView('login'));
+verifyBackToLogin?.addEventListener('click', () => {
+    signOut(auth).then(() => switchView('login'));
 });
 
-backToLoginBtn.addEventListener('click', () => {
-    switchView('login');
-});
-
-toggleBtn.addEventListener('click', (e) => {
+toggleBtn?.addEventListener('click', (e) => {
     e.preventDefault();
     switchView(mode === 'login' ? 'signup' : 'login');
+});
+
+refreshVerifyBtn?.addEventListener('click', async () => {
+    const user = auth.currentUser;
+    if (user) {
+        await user.reload();
+        if (user.emailVerified) {
+            showToast('Identity Activated!', 'success');
+            window.location.href = 'index.html';
+        } else {
+            showToast('Verification not detected yet.', 'error');
+        }
+    }
+});
+
+resendVerifyBtn?.addEventListener('click', async () => {
+    const user = auth.currentUser;
+    if (user) {
+        try {
+            await sendEmailVerification(user);
+            showToast('Verification Sent. Check your inbox.', 'success');
+        } catch (err) {
+            showToast(err.message, 'error');
+        }
+    }
 });
 
 function switchView(newMode) {
     mode = newMode;
     hideAllMessages();
     
-    // Hide/Show correct forms
+    // Hide all main containers
+    authForm.classList.add('hidden');
+    resetView.classList.add('hidden');
+    verifyView.classList.add('hidden');
+    toggleArea.classList.remove('hidden');
+    
     if (mode === 'reset') {
-        authForm.classList.add('hidden');
         resetView.classList.remove('hidden');
         toggleArea.classList.add('hidden');
-        
         authTitle.textContent = 'Reset Password';
         authSubtitle.textContent = 'Enter your email to receive a recovery link.';
+    } else if (mode === 'verify') {
+        verifyView.classList.remove('hidden');
+        toggleArea.classList.add('hidden');
+        authTitle.textContent = 'Active Check Required';
+        authSubtitle.textContent = 'Your identity is pending cryptographic confirmation.';
     } else {
         authForm.classList.remove('hidden');
-        resetView.classList.add('hidden');
-        toggleArea.classList.remove('hidden');
-        
         if (mode === 'signup') {
             authTitle.textContent = 'Create Account';
             authSubtitle.textContent = 'Join the Iraqi Archive to save your findings.';
@@ -100,7 +154,7 @@ function switchView(newMode) {
 }
 
 // --- FORM SUBMISSION ---
-authForm.addEventListener('submit', async (e) => {
+authForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = emailInput.value.trim();
     const password = passwordInput.value;
@@ -110,11 +164,17 @@ authForm.addEventListener('submit', async (e) => {
 
     try {
         if (mode === 'login') {
-            await signInWithEmailAndPassword(auth, email, password);
-            showToast('Welcome back!', 'success');
+            const result = await signInWithEmailAndPassword(auth, email, password);
+            if (!result.user.emailVerified) {
+                switchView('verify');
+            } else {
+                showToast('Welcome back!', 'success');
+            }
         } else {
-            await createUserWithEmailAndPassword(auth, email, password);
-            showToast('Account created successfully!', 'success');
+            const result = await createUserWithEmailAndPassword(auth, email, password);
+            await sendEmailVerification(result.user);
+            showToast('Account created! Verify your email.', 'success');
+            switchView('verify');
         }
     } catch (error) {
         showError(errorMessages[error.code] || error.message);
@@ -123,12 +183,9 @@ authForm.addEventListener('submit', async (e) => {
 });
 
 // --- PASSWORD RESET SUBMISSION ---
-sendResetBtn.addEventListener('click', async () => {
+sendResetBtn?.addEventListener('click', async () => {
     const email = resetEmailInput.value.trim();
-    if (!email) {
-        showError('Please enter your email address first.');
-        return;
-    }
+    if (!email) return showError('Please enter your email.');
 
     setLoading(sendResetBtn, resetBtnText, resetBtnSpinner, true);
     hideAllMessages();
@@ -137,7 +194,6 @@ sendResetBtn.addEventListener('click', async () => {
         await sendPasswordResetEmail(auth, email);
         showSuccess('Reset link sent! Please check your inbox.');
         showToast('Password reset email sent.', 'success');
-        // Optional: switch back to login after a delay
         setTimeout(() => switchView('login'), 3000);
     } catch (error) {
         showError(errorMessages[error.code] || error.message);

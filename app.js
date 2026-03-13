@@ -56,7 +56,7 @@ function initRouting() {
 function handleHashChange() {
     const hash = window.location.hash.replace('#', '');
     if (hash === 'vault') {
-        if (!currentUser) {
+        if (!currentUser || !currentUser.emailVerified) {
             window.location.hash = ''; // reset if not logged in
             window.location.href = 'auth.html';
             return;
@@ -148,18 +148,27 @@ function renderCategoryTabs() {
 // AUTH OBSERVER
 // ================================================================
 function initAuthObserver() {
-    onAuthStateChanged(auth, (user) => {
+    onAuthStateChanged(auth, async (user) => {
         const isAuthPage = window.location.pathname.includes('auth.html');
+        const verifyBanner = document.getElementById('verify-banner');
 
         if (user) {
             currentUser = user;
+            
+            if (!user.emailVerified) {
+                verifyBanner?.classList.remove('hidden');
+            } else {
+                verifyBanner?.classList.add('hidden');
+            }
+
             updateNavUI(user);
             startFavoritesListener(user.uid);
-            if (isAuthPage) window.location.href = 'index.html';
+            if (isAuthPage && user.emailVerified) window.location.href = 'index.html';
         } else {
             currentUser = null;
             savedIds    = [];
             if (unsubFavorites) unsubFavorites();
+            verifyBanner?.classList.add('hidden');
             updateNavUI(null);
             renderResources(); // Re-render without saved state
         }

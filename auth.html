@@ -61,6 +61,24 @@
             <button id="back-to-login" class="toggle-btn" style="width: 100%; margin-top: 24px; text-decoration: none; font-size: 12px;">Return to Portal</button>
         </div>
 
+        <!-- Verification Required View -->
+        <div id="verify-view" class="hidden animate-in text-center">
+            <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; padding: 30px; margin-bottom: 24px;">
+                <div style="width: 60px; height: 60px; background: var(--accent-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+                    <svg style="width: 30px; color: #000;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                    </svg>
+                </div>
+                <h3 style="font-weight: 800; color: #fff; margin-bottom: 10px;">Verification Sent.</h3>
+                <p style="font-size: 13px; color: #888; line-height: 1.6;">A cryptographic check has been sent to your email. You must confirm the link inside it to activate your identity.</p>
+            </div>
+            <button id="refresh-verify-btn" class="submit-btn">
+                <span>Refresh Status</span>
+            </button>
+            <button id="resend-verify-btn" class="toggle-btn" style="width: 100%; margin-top: 16px; text-decoration: none; font-size: 11px;">Resend Verification Email</button>
+            <button id="verify-back-to-login" class="toggle-btn" style="width: 100%; margin-top: 10px; text-decoration: none; font-size: 11px; opacity: 0.5;">Back to Portal</button>
+        </div>
+
         <!-- Footer Toggle -->
         <div class="toggle-area">
             <span id="toggle-prompt" style="font-size: 12px;">New to the archive?</span>

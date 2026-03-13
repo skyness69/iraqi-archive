@@ -2,27 +2,39 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ─── GLOBAL RESOURCES (read by everyone, write by admin only) ───
+    // ─── USER DATA: Only users can touch their own favorites ───────────
+    match /users/{userId}/favorites/{item} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // ─── ARCHIVE RESOURCES: Admin Only with Validation ──────────────────
     match /resources/{docId} {
       allow read: if true;
-      allow write: if request.auth != null 
-                   && request.auth.token.email == 'alaidan25@gmail.com';
+      allow write: if isAdmin() 
+                   && request.resource.data.title.size() < 100
+                   && request.resource.data.desc.size() < 1000;
     }
 
-    // ─── USER FAVORITES (private per user) ──────────────────────────
-    match /users/{userId}/favorites/{item} {
-      allow read, write: if request.auth != null 
-                         && request.auth.uid == userId;
-    }
-
-    // ─── CATEGORIES (Temporary Public Access for Fix) ────────────────
+    // ─── CATEGORIES: Admin Only with Size Limit ─────────────────────────
     match /categories/{docId} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if isAdmin() && request.resource.data.name.size() < 50;
     }
 
-    // ─── BUG REPORTS (Security Temporary Flush) ─────────────────
+    // ─── BUG REPORTS: Spam Protected Public Entry ───────────────────────
     match /bug_reports/{docId} {
-      allow read, write, create: if true;
+      // Allow public creation with size limits to prevent spam attacks
+      allow create: if request.resource.data.user.size() < 100
+                    && request.resource.data.subject.size() < 200
+                    && request.resource.data.message.size() < 2000;
+                    
+      // Only admin can read/manage existing reports
+      allow read, update, delete: if isAdmin();
+    }
+
+    // Helper: Check if active user is the vault master
+    function isAdmin() {
+      return request.auth != null && request.auth.token.email.matches('(?i)alaidan25@gmail\\.com');
     }
 
   }

@@ -109,6 +109,15 @@
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             
+            // --- SPAM PROTECTION: 2 Minute Cooldown ---
+            const lastSent = localStorage.getItem('bug_last_sent');
+            const now = Date.now();
+            if (lastSent && (now - lastSent) < 120000) {
+                const wait = Math.ceil((120000 - (now - lastSent)) / 1000);
+                showToast(`Transmission Cooldown: Wait ${wait}s`, 'error');
+                return;
+            }
+
             const user = document.getElementById('b-user').value.trim();
             const subject = document.getElementById('b-subject').value.trim();
             const message = document.getElementById('b-message').value.trim();
@@ -128,6 +137,9 @@
                     createdAt: new Date().toISOString(),
                     status: 'unread'
                 });
+
+                // Set cooldown
+                localStorage.setItem('bug_last_sent', Date.now());
 
                 // Success
                 form.classList.add('hidden');

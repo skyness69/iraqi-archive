@@ -12,6 +12,7 @@ import {
 
 import { showToast, escHtml, escQ, shortUrl } from './utils.js';
 
+// Global Vars
 const COL      = 'resources';
 const CAT_COL  = 'categories';
 
@@ -22,21 +23,25 @@ let editingCatId = null;
 let unsubRes = null;
 let unsubCat = null;
 
-// ================================================================
-// INIT & AUTH
-// ================================================================
+/**
+ * START PORTAL
+ */
 document.addEventListener('DOMContentLoaded', () => {
-    // Show boot message
-    showToast('Portal Booted. Verifying Administration...', 'success');
+    console.log("IA ADMIN: Booting system...");
+    showToast('Vault Master Portal Online.', 'success');
     
-    // Bind Static Listeners
-    document.getElementById('logout-btn')?.addEventListener('click', () => signOut(auth));
+    // Bind Event Listeners
+    document.getElementById('logout-btn')?.addEventListener('click', () => {
+        showToast('Disconnecting...', 'success');
+        signOut(auth);
+    });
+
     document.getElementById('add-form')?.addEventListener('submit', handleAddResource);
     document.getElementById('edit-form')?.addEventListener('submit', handleEditResource);
     document.getElementById('cat-form')?.addEventListener('submit', handleCategorySubmit);
     document.getElementById('close-modal')?.addEventListener('click', closeEditModal);
 
-    // Sidebar Navigation
+    // Sidebar Toggles
     document.getElementById('side-nav-resources')?.addEventListener('click', (e) => {
         e.preventDefault();
         switchSection('resources');
@@ -46,35 +51,49 @@ document.addEventListener('DOMContentLoaded', () => {
         switchSection('categories');
     });
 
-    // Modal click-away
+    // Close modal on backdrop
     const editModal = document.getElementById('edit-modal');
     editModal?.addEventListener('click', (e) => { if (e.target === editModal) closeEditModal(); });
 
-    initAuth();
+    initMainAuth();
 });
 
-function initAuth() {
+/**
+ * AUTHENTICATION
+ */
+function initMainAuth() {
     onAuthStateChanged(auth, (user) => {
         if (!user) {
+            console.log("IA ADMIN: No session. Redirecting to auth center.");
             window.location.href = 'auth.html';
             return;
         }
-        if (user.email.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
-            showToast('Unauthorized. Admin access only.', 'error');
-            setTimeout(() => window.location.href = 'index.html', 2000);
+
+        const email = user.email ? user.email.toLowerCase() : "";
+        console.log("IA ADMIN: Authenticated as", email);
+
+        if (email !== ADMIN_EMAIL.toLowerCase()) {
+            showToast('Access Denied: Unrecognized Signature.', 'error');
+            setTimeout(() => window.location.href = 'index.html', 1500);
             return;
         }
         
-        // Grant Access
-        document.getElementById('access-denied').style.display = 'none';
-        document.getElementById('dashboard').style.display = 'block';
+        // Grant Access to UI
+        const accessDenied = document.getElementById('access-denied');
+        const dashboard = document.getElementById('dashboard');
+        if (accessDenied) accessDenied.style.display = 'none';
+        if (dashboard) dashboard.style.display = 'block';
+        
         document.getElementById('admin-email').textContent = user.email;
         document.getElementById('admin-avatar').textContent = user.email[0].toUpperCase();
         
-        startLiveSync();
+        startDataListeners();
     });
 }
 
+/**
+ * UI NAVIGATION
+ */
 function switchSection(name) {
     const resSec = document.getElementById('resources-section');
     const catSec = document.getElementById('categories-section');
@@ -82,63 +101,70 @@ function switchSection(name) {
     const catNav = document.getElementById('side-nav-categories');
 
     if (name === 'resources') {
-        resSec.classList.remove('hidden');
-        catSec.classList.add('hidden');
-        resNav.classList.add('active');
-        catNav.classList.remove('active');
+        resSec?.classList.remove('hidden');
+        catSec?.classList.add('hidden');
+        resNav?.classList.add('active');
+        catNav?.classList.remove('active');
     } else {
-        resSec.classList.add('hidden');
-        catSec.classList.remove('hidden');
-        resNav.classList.remove('active');
-        catNav.classList.add('active');
+        resSec?.classList.add('hidden');
+        catSec?.classList.remove('hidden');
+        resNav?.classList.remove('active');
+        catNav?.classList.add('active');
     }
 }
 
-// ================================================================
-// FIRESTORE SYNC
-// ================================================================
-function startLiveSync() {
+/**
+ * DATA SYNC
+ */
+function startDataListeners() {
+    console.log("IA ADMIN: Syncing with Firebase...");
     if (unsubRes) unsubRes();
     if (unsubCat) unsubCat();
 
-    // Sync Resources
+    // Resources Listener
     unsubRes = onSnapshot(collection(db, COL), (snap) => {
         resources = [];
         snap.forEach(d => resources.push({ id: d.id, ...d.data() }));
         resources.sort((a,b) => (a.title || '').localeCompare(b.title || ''));
         renderResourcesTable(resources);
-        updateDashboardStats(resources);
-    }, err => showToast('Resource Sync Failed: ' + err.message, 'error'));
+        updateStatsView(resources);
+    }, err => {
+        console.error("Resources Sync Error:", err);
+        showToast('Resource sync disrupted.', 'error');
+    });
 
-    // Sync Categories
+    // Categories Listener
     unsubCat = onSnapshot(collection(db, CAT_COL), (snap) => {
         categories = [];
         snap.forEach(d => categories.push({ id: d.id, ...d.data() }));
         categories.sort((a,b) => (a.name || '').localeCompare(b.name || ''));
-        renderCategoriesTable(categories);
-        populateCategoryDropdowns(categories);
-    }, err => showToast('Category Sync Failed: ' + err.message, 'error'));
+        renderCategoriesList(categories);
+        updateCategoryOptions(categories);
+    }, err => {
+        console.error("Categories Sync Error:", err);
+        showToast('Category sync disrupted.', 'error');
+    });
 }
 
-// ================================================================
-// CATEGORY LOGIC
-// ================================================================
-function renderCategoriesTable(items) {
+/**
+ * CATEGORY OPERATIONS
+ */
+function renderCategoriesList(items) {
     const tbody = document.getElementById('category-tbody');
     if (!tbody) return;
 
     if (items.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="2" style="text-align:center;padding:4rem;color:var(--text-muted);">No categories found. Add one on the left.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="2" class="text-center py-20 text-slate-500 font-bold uppercase tracking-widest text-[10px]">No categories found in archives.</td></tr>';
         return;
     }
 
     tbody.innerHTML = items.map(c => `
-        <tr>
-            <td><p style="font-weight:800; color:var(--text-pure); font-size:14px;">${escHtml(c.name)}</p></td>
-            <td style="text-align:right">
-                <div class="flex justify-end gap-3">
-                    <button onclick="editCategoryMode('${c.id}','${escQ(c.name)}')" class="btn-accent" style="padding:6px 12px; font-size:10px; border-radius:10px; box-shadow:none;">EDIT</button>
-                    <button onclick="handleDeleteCategory('${c.id}','${escQ(c.name)}')" style="padding:6px 12px; border-radius:10px; border:0.5px solid rgba(239,68,68,0.2); background:rgba(239,68,68,0.05); color:#fca5a5; font-size:10px; font-weight:800; cursor:pointer;">DELETE</button>
+        <tr class="group hover:bg-white/5 transition-colors">
+            <td class="pl-6"><p style="font-weight:800; color:var(--text-pure); font-size:14px;">${escHtml(c.name)}</p></td>
+            <td class="pr-6 text-right">
+                <div class="flex justify-end gap-2">
+                    <button onclick="setEditMode('${c.id}','${escQ(c.name)}')" class="btn-accent !py-2 !px-4 !text-[9px] !rounded-lg !bg-slate-800 !text-white hover:!bg-white hover:!text-black">EDIT</button>
+                    <button onclick="deleteCategoryReq('${c.id}','${escQ(c.name)}')" class="!py-2 !px-4 !text-[9px] !rounded-lg border border-red-500/20 bg-red-500/5 text-red-400 font-bold hover:bg-red-500 hover:text-white transition-all">DELETE</button>
                 </div>
             </td>
         </tr>
@@ -148,96 +174,107 @@ function renderCategoriesTable(items) {
 async function handleCategorySubmit(e) {
     e.preventDefault();
     const nameInput = document.getElementById('c-name');
-    const btn = document.getElementById('cat-add-btn');
-    const name = nameInput.value.trim();
+    const btnText = document.querySelector('#cat-add-btn span');
+    const name = nameInput?.value.trim();
 
-    if (!name) return showToast('Please enter a name.', 'error');
+    if (!name) {
+        showToast('Identification required.', 'error');
+        return;
+    }
 
-    btn.disabled = true;
-    const initialText = btn.innerHTML;
-    btn.innerHTML = 'Syncing...';
+    if (btnText) btnText.parentElement.disabled = true;
+    const originalLabel = btnText ? btnText.textContent : 'Push';
+    if (btnText) btnText.textContent = 'Syncing...';
 
     try {
         if (editingCatId) {
             await updateDoc(doc(db, CAT_COL, editingCatId), { name });
-            showToast(`Category updated to "${name}"`, 'success');
-            cancelCategoryEdit();
+            showToast(`Update Success: "${name}"`, 'success');
+            clearEditMode();
         } else {
             await addDoc(collection(db, CAT_COL), { name, createdAt: new Date().toISOString() });
-            showToast(`Category "${name}" created!`, 'success');
+            showToast(`Created Category: "${name}"`, 'success');
         }
-        nameInput.value = '';
+        if (nameInput) nameInput.value = '';
     } catch (err) {
-        showToast('Operation Failed: ' + err.message, 'error');
+        console.error("CAT ERROR:", err);
+        showToast(`Failure: ${err.message}`, 'error');
     } finally {
-        btn.disabled = false;
-        btn.innerHTML = initialText;
+        if (btnText) {
+            btnText.textContent = originalLabel;
+            btnText.parentElement.disabled = false;
+        }
     }
 }
 
-window.editCategoryMode = (id, name) => {
+window.setEditMode = (id, name) => {
     editingCatId = id;
-    document.getElementById('c-name').value = name;
-    document.querySelector('#cat-add-btn span').textContent = 'Update Category';
+    const nameInput = document.getElementById('c-name');
+    const btnText = document.querySelector('#cat-add-btn span');
     
-    if (!document.getElementById('cat-cancel-btn')) {
+    if (nameInput) nameInput.value = name;
+    if (btnText) btnText.textContent = 'Update Name';
+    
+    if (!document.getElementById('cat-cancel')) {
         const cancel = document.createElement('button');
-        cancel.id = 'cat-cancel-btn';
+        cancel.id = 'cat-cancel';
         cancel.type = 'button';
         cancel.textContent = 'Cancel Edit';
-        cancel.className = 'w-full mt-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest';
-        cancel.onclick = cancelCategoryEdit;
-        document.getElementById('cat-form').appendChild(cancel);
+        cancel.className = 'w-full mt-4 text-[10px] font-black uppercase tracking-tighter text-slate-500 hover:text-white transition-colors';
+        cancel.onclick = clearEditMode;
+        document.getElementById('cat-form')?.appendChild(cancel);
     }
-    document.getElementById('c-name').focus();
+    nameInput?.focus();
 };
 
-function cancelCategoryEdit() {
+function clearEditMode() {
     editingCatId = null;
-    document.getElementById('c-name').value = '';
-    document.querySelector('#cat-add-btn span').textContent = 'Create Category';
-    document.getElementById('cat-cancel-btn')?.remove();
+    const nameInput = document.getElementById('c-name');
+    const btnText = document.querySelector('#cat-add-btn span');
+    if (nameInput) nameInput.value = '';
+    if (btnText) btnText.textContent = 'Create Category';
+    document.getElementById('cat-cancel')?.remove();
 }
 
-window.handleDeleteCategory = (id, name) => {
-    if (confirm(`Absolutely delete "${name}"?\nResources will lose their section assignment.`)) {
+window.deleteCategoryReq = (id, name) => {
+    if (confirm(`PURGE AUTHORIZATION REQUIRED:\nDelete "${name}" category?`)) {
         deleteDoc(doc(db, CAT_COL, id))
-            .then(() => showToast(`Removed "${name}"`, 'success'))
-            .catch(err => showToast('Delete failed: ' + err.message, 'error'));
+            .then(() => showToast(`Category Purged.`, 'success'))
+            .catch(err => showToast(`Purge Failed: ${err.message}`, 'error'));
     }
 };
 
-// ================================================================
-// RESOURCE LOGIC
-// ================================================================
+/**
+ * RESOURCE OPERATIONS
+ */
 function renderResourcesTable(items) {
     const tbody = document.getElementById('resource-tbody');
-    const count = document.getElementById('table-count');
-    if (!tbody || !count) return;
+    const countLabel = document.getElementById('table-count');
+    if (!tbody || !countLabel) return;
 
-    count.textContent = `${items.length} ITEMS`;
+    countLabel.textContent = `${items.length} ARCHIVED`;
 
     if (items.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:6rem;color:var(--text-muted);">Database Empty. Project Initialized.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="3" class="text-center py-24 text-slate-500 uppercase font-black text-xs tracking-widest">No artifacts found. Database is currently inert.</td></tr>';
         return;
     }
 
     tbody.innerHTML = items.map(r => `
-        <tr>
-            <td>
+        <tr class="group hover:bg-white/5 transition-colors">
+            <td class="pl-6">
                 <div class="flex items-center gap-4">
-                    <div class="logo-box" style="width:36px; height:36px; font-size:12px; flex-shrink:0;">${(r.title || '?')[0].toUpperCase()}</div>
+                    <div class="w-10 h-10 bg-slate-800 rounded-xl flex items-center justify-center font-black text-xs text-white border border-white/5 group-hover:border-white/20 transition-all">${(r.title || "?")[0].toUpperCase()}</div>
                     <div>
-                        <p style="font-weight:800; color:var(--text-pure); font-size:14px;">${escHtml(r.title)}</p>
-                        <a href="${escHtml(r.url)}" target="_blank" style="color:var(--accent-primary); font-size:11px; text-decoration:none;">${shortUrl(r.url)}</a>
+                        <p class="font-black text-[14px] text-white tracking-tight">${escHtml(r.title)}</p>
+                        <a href="${escHtml(r.url)}" target="_blank" class="text-[10px] text-red-400/80 hover:text-red-400 font-bold">${shortUrl(r.url)} →</a>
                     </div>
                 </div>
             </td>
-            <td><span class="badge-saas" style="font-size:9px;">${escHtml(r.category || 'Uncategorized')}</span></td>
-            <td>
-                <div class="flex justify-end gap-3">
-                    <button onclick="openResourceModal('${r.id}','${escQ(r.title)}','${escQ(r.desc)}','${escQ(r.url)}','${escQ(r.category)}')" class="btn-accent" style="padding:6px 12px; font-size:10px; border-radius:10px; box-shadow:none;">EDIT</button>
-                    <button onclick="handleDeleteResource('${r.id}','${escQ(r.title)}')" style="padding:6px 12px; border-radius:10px; border:0.5px solid rgba(239,68,68,0.2); background:rgba(239,68,68,0.05); color:#fca5a5; font-size:10px; font-weight:800; cursor:pointer;">DELETE</button>
+            <td><span class="inline-block px-3 py-1 rounded-full bg-slate-900 border border-white/5 text-[9px] font-black text-slate-400 uppercase tracking-widest">${escHtml(r.category || 'Legacy')}</span></td>
+            <td class="pr-6 text-right">
+                <div class="flex justify-end gap-2">
+                    <button onclick="reqEditResource('${r.id}','${escQ(r.title)}','${escQ(r.desc)}','${escQ(r.url)}','${escQ(r.category)}')" class="btn-accent !py-2 !px-4 !text-[9px] !rounded-lg !bg-white !text-black hover:!bg-red-500 hover:!text-white">EDIT</button>
+                    <button onclick="reqDeleteResource('${r.id}','${escQ(r.title)}')" class="!py-2 !px-4 !text-[9px] !rounded-lg border border-red-500/20 bg-red-500/5 text-red-400 font-bold hover:bg-red-500 hover:text-white transition-all">DELETE</button>
                 </div>
             </td>
         </tr>
@@ -246,23 +283,29 @@ function renderResourcesTable(items) {
 
 async function handleAddResource(e) {
     e.preventDefault();
-    const title = document.getElementById('f-title').value.trim();
-    const desc = document.getElementById('f-desc').value.trim();
-    const url = document.getElementById('f-url').value.trim();
-    const category = document.getElementById('f-category').value;
+    const title = document.getElementById('f-title')?.value.trim();
+    const desc = document.getElementById('f-desc')?.value.trim();
+    const url = document.getElementById('f-url')?.value.trim();
+    const category = document.getElementById('f-category')?.value;
 
-    if (!title || !desc || !url || !category) return showToast('Fill all fields.', 'error');
+    if (!title || !desc || !url || !category) {
+        showToast('All parameters required.', 'error');
+        return;
+    }
     
     try {
-        await addDoc(collection(db, COL), { title, desc, url, category, addedAt: new Date().toISOString() });
-        document.getElementById('add-form').reset();
-        showToast(`Resource "${title}" deployed!`, 'success');
+        await addDoc(collection(db, COL), { 
+            title, desc, url, category, 
+            addedAt: new Date().toISOString() 
+        });
+        document.getElementById('add-form')?.reset();
+        showToast(`Deployment Success: "${title}"`, 'success');
     } catch (err) {
-        showToast('Deployment Failed: ' + err.message, 'error');
+        showToast(`Deployment Failure: ${err.message}`, 'error');
     }
 }
 
-window.openResourceModal = (id, title, desc, url, category) => {
+window.reqEditResource = (id, title, desc, url, category) => {
     document.getElementById('edit-id').value = id;
     document.getElementById('e-title').value = title;
     document.getElementById('e-desc').value = desc;
@@ -285,34 +328,37 @@ async function handleEditResource(e) {
 
     try {
         await updateDoc(doc(db, COL, id), { title, desc, url, category });
-        showToast('Resource updated!', 'success');
+        showToast('Parameters Reconfigured.', 'success');
         closeEditModal();
     } catch (err) {
-        showToast('Update Failed: ' + err.message, 'error');
+        showToast(`Reconfiguration Failed: ${err.message}`, 'error');
     }
 }
 
-window.handleDeleteResource = (id, title) => {
-    if (confirm(`Delete "${title}"?`)) {
+window.reqDeleteResource = (id, title) => {
+    if (confirm(`CONFIRM DESTRUCTION:\nPurge "${title}" from the public archive?`)) {
         deleteDoc(doc(db, COL, id))
-            .then(() => showToast(`Resource deleted.`, 'success'))
-            .catch(err => showToast('Delete failed: ' + err.message, 'error'));
+            .then(() => showToast(`Artifact Purged.`, 'success'))
+            .catch(err => showToast(`Purge Failure: ${err.message}`, 'error'));
     }
 };
 
-function updateDashboardStats(items) {
+/**
+ * HELPER UI
+ */
+function updateStatsView(items) {
     document.getElementById('stat-total').textContent = items.length;
     document.getElementById('stat-cats').textContent = new Set(items.map(r => r.category)).size;
     document.getElementById('stat-date').textContent = new Date().toLocaleDateString('en-GB', { day:'numeric', month:'short' });
 }
 
-function populateCategoryDropdowns(cats) {
+function updateCategoryOptions(cats) {
     const fCat = document.getElementById('f-category');
     const eCat = document.getElementById('e-category');
     if (!fCat || !eCat) return;
 
     const html = `
-        <option value="">Select Section</option>
+        <option value="">-- SELECT SECTION --</option>
         ${cats.map(c => `<option value="${escHtml(c.name)}">${escHtml(c.name)}</option>`).join('')}
     `;
     fCat.innerHTML = html;

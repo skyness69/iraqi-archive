@@ -363,15 +363,23 @@ window.goToPage = (page) => {
 // ================================================================
 // COMPACT CARD TEMPLATE
 // ================================================================
+function isArabic(text) {
+    return /[\u0600-\u06FF]/.test(text);
+}
+
 function cardTemplate(item) {
     const isSaved  = savedIds.includes(item.id);
     const initials = (item.title || '?')[0].toUpperCase();
     const desc = (item.desc || '').length > 90 ? item.desc.slice(0, 90) + '…' : (item.desc || '');
 
+    const hasArabic = isArabic(item.title || '') || isArabic(item.desc || '');
+    const textDir   = hasArabic ? 'rtl' : 'ltr';
+    const arabicClass = hasArabic ? 'arabic-text' : '';
+
     return `
-    <div class="resource-card-premium group" onclick="showDetails('${item.id}')">
+    <div class="resource-card-premium group ${arabicClass}" onclick="showDetails('${item.id}')" dir="${textDir}">
         <!-- Top Row: Icon & Heart -->
-        <div class="card-top-row">
+        <div class="card-top-row" style="flex-direction: ${hasArabic ? 'row-reverse' : 'row'}">
             <div class="card-icon-saas">${initials}</div>
             <button onclick="event.stopPropagation(); handleSave('${item.id}')"
                     id="save-btn-${item.id}"
@@ -390,7 +398,7 @@ function cardTemplate(item) {
         <h3 class="card-title">${item.title || 'Untitled'}</h3>
         <p class="card-desc">${desc}</p>
         <!-- Footer -->
-        <div class="card-footer">
+        <div class="card-footer" style="flex-direction: ${hasArabic ? 'row-reverse' : 'row'}">
             <span class="badge-saas">${item.category || 'Other'}</span>
             <a href="${item.url || '#'}" target="_blank" rel="noopener noreferrer" class="card-link" onclick="event.stopPropagation()">Visit →</a>
         </div>

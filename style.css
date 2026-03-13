@@ -17,6 +17,32 @@ body {
     overflow-x: hidden;
 }
 
+/* --- ARABIC TEXT SUPPORT --- */
+.arabic-text {
+    font-family: 'Noto Sans Arabic', 'Inter', sans-serif;
+    border-color: rgba(99, 66, 255, 0.2) !important;
+}
+
+.arabic-text .card-title {
+    font-family: 'Noto Sans Arabic', sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+    line-height: 1.7;
+    letter-spacing: 0;
+}
+
+.arabic-text .card-desc {
+    font-family: 'Noto Sans Arabic', sans-serif;
+    line-height: 1.9;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+}
+
+.arabic-text .badge-saas {
+    font-family: 'Inter', sans-serif;
+    direction: ltr;
+}
+
 h1, h2, h3 {
     color: var(--text-pure);
 }

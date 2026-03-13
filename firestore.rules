@@ -7,28 +7,35 @@ service cloud.firestore {
       allow read, write: if isVerified() && request.auth.uid == userId;
     }
 
-    // ─── ARCHIVE RESOURCES: Admin Only with Validation ──────────────────
+    // ─── ARCHIVE RESOURCES: Admin Only ──────────────────────────────────
     match /resources/{docId} {
       allow read: if true;
-      allow write: if isAdmin() 
-                   && request.resource.data.title.size() < 100
-                   && request.resource.data.desc.size() < 1000;
+      
+      // Allow deletion for admin without field checks (since data is null)
+      allow delete: if isAdmin();
+      
+      // Allow creation/updates with validation
+      allow create, update: if isAdmin() && (
+        // Special case for the metadata doc
+        docId == '--categories-metadata--' || (
+          request.resource.data.title.size() < 100 &&
+          request.resource.data.desc.size() < 1000
+        )
+      );
     }
 
-    // ─── CATEGORIES: Admin Only with Size Limit ─────────────────────────
+    // ─── PREVIOUS CATEGORIES COLLECTION (Legacy Support) ──────────────
     match /categories/{docId} {
       allow read: if true;
-      allow write: if isAdmin() && request.resource.data.name.size() < 50;
+      allow write: if isAdmin();
     }
 
     // ─── BUG REPORTS: Spam Protected Public Entry ───────────────────────
     match /bug_reports/{docId} {
-      // Allow public creation with size limits to prevent spam attacks
       allow create: if request.resource.data.user.size() < 100
                     && request.resource.data.subject.size() < 200
                     && request.resource.data.message.size() < 2000;
                     
-      // Only admin can read/manage existing reports
       allow read, update, delete: if isAdmin();
     }
 

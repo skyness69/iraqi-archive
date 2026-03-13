@@ -275,7 +275,10 @@ async function handleCategorySubmit(e) {
     if (!newName) return showToast('Name required.', 'error');
 
     let updatedList = [...categories];
+    let oldName = null;
+    
     if (editingCatId !== null) {
+        oldName = updatedList[parseInt(editingCatId)];
         updatedList[parseInt(editingCatId)] = newName;
     } else {
         if (updatedList.includes(newName)) return showToast('Duplicate.', 'error');
@@ -284,6 +287,19 @@ async function handleCategorySubmit(e) {
 
     try {
         await setDoc(doc(db, COL, CAT_DOC_ID), { list: updatedList });
+        
+        // If it's a rename, update all resources with the old category
+        if (oldName && oldName !== newName) {
+            const resourcesToUpdate = resources.filter(r => r.category === oldName);
+            const updatePromises = resourcesToUpdate.map(r => 
+                updateDoc(doc(db, COL, r.id), { category: newName })
+            );
+            await Promise.all(updatePromises);
+            if (updatePromises.length > 0) {
+                showToast(`Migrated ${updatePromises.length} artifacts to new category.`, 'success');
+            }
+        }
+        
         nameInput.value = '';
         if (editingCatId !== null) clearEditMode();
         showToast('Vault Synchronized.', 'success');

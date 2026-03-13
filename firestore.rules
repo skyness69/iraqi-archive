@@ -30,9 +30,10 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    // ─── BUG REPORTS: Spam Protected Public Entry ───────────────────────
+    // ─── BUG REPORTS: Authenticated Users Only ───────────────────────
     match /bug_reports/{docId} {
-      allow create: if request.resource.data.user.size() < 100
+      allow create: if request.auth != null
+                    && request.resource.data.user.size() < 100
                     && request.resource.data.subject.size() < 200
                     && request.resource.data.message.size() < 2000;
                     

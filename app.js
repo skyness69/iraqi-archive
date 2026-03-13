@@ -58,7 +58,7 @@ function handleHashChange() {
     if (hash === 'vault') {
         if (!currentUser || !currentUser.emailVerified) {
             window.location.hash = ''; // reset if not logged in
-            window.location.href = 'auth.html';
+            // Redirect happens in onAuthStateChanged
             return;
         }
         currentView = 'Vault';
@@ -176,8 +176,18 @@ function initAuthObserver() {
             if (unsubFavorites) unsubFavorites();
             verifyBanner?.classList.add('hidden');
             updateNavUI(null);
+            
+            // If hash is vault but not logged in, redirect
+            if (window.location.hash.includes('vault')) {
+                window.location.href = 'auth.html';
+                return;
+            }
+            
             renderResources(); // Re-render without saved state
         }
+        
+        // Always run hash change after auth state is known
+        handleHashChange();
     });
 
     document.getElementById('logout-btn')
@@ -399,7 +409,7 @@ function cardTemplate(item) {
         <h3 class="card-title">${item.title || 'Untitled'}</h3>
         <p class="card-desc">${desc}</p>
         <!-- Footer -->
-        <div class="card-footer" style="flex-direction: ${hasArabic ? 'row-reverse' : 'row'}">
+        <div class="card-footer">
             <span class="badge-saas">${item.category || 'Other'}</span>
             <a href="${item.url || '#'}" target="_blank" rel="noopener noreferrer" class="card-link" onclick="event.stopPropagation()">Visit →</a>
         </div>
@@ -425,17 +435,12 @@ window.handleSave = async (resourceId) => {
             // Remove
             await deleteDoc(favDocRef);
         } else {
-            // Save â€” include full resource snapshot so vault doesn't need resources[]
-            const resource = resources.find(r => r.id === resourceId);
+            // Save — Only store timestamp reference, render from live resources collection
             await setDoc(favDocRef, {
-                title: resource?.title || '',
-                desc: resource?.desc || '',
-                url: resource?.url || '',
-                category: resource?.category || '',
                 savedAt: new Date().toISOString()
             });
         }
-        // onSnapshot fires â†’ savedIds updates â†’ renderArchive() re-runs automatically
+        // onSnapshot fires → savedIds updates → renderArchive() re-runs automatically
     } catch (error) {
         console.error('Save error:', error);
         showToast('Could not update favorites. Check your connection.', 'error');

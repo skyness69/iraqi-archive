@@ -62,7 +62,7 @@
                 <form id="bug-form" class="space-y-6">
                     <div>
                         <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Identity (Name/Email)</label>
-                        <input type="text" id="b-user" class="form-input-saas" placeholder="How should we call you?" required>
+                        <input type="text" id="b-user" class="form-input-saas" placeholder="Authenticating..." readonly required>
                     </div>
                     
                     <div>
@@ -98,8 +98,19 @@
     <div id="toast-container"></div>
 
     <script type="module">
-        import { db, collection, addDoc } from './firebase-config.js';
+        import { auth, onAuthStateChanged, db, collection, addDoc } from './firebase-config.js';
         import { showToast } from './utils.js';
+
+        let currentUser = null;
+
+        onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                window.location.href = 'auth.html';
+            } else {
+                currentUser = user;
+                document.getElementById('b-user').value = user.email;
+            }
+        });
 
         const form = document.getElementById('bug-form');
         const successView = document.getElementById('success-view');

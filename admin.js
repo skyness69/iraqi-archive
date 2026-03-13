@@ -39,18 +39,34 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('cat-form')?.addEventListener('submit', handleCategorySubmit);
     document.getElementById('close-modal')?.addEventListener('click', closeEditModal);
 
+    // Mobile Sidebar Toggles
+    const mobileToggle = document.getElementById('mobile-toggle');
+    const adminSidebar = document.getElementById('admin-sidebar');
+    const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+    const toggleSidebar = () => {
+        adminSidebar?.classList.toggle('active');
+        sidebarOverlay?.classList.toggle('active');
+    };
+
+    mobileToggle?.addEventListener('click', toggleSidebar);
+    sidebarOverlay?.addEventListener('click', toggleSidebar);
+
     // Sidebar Toggles
     document.getElementById('side-nav-resources')?.addEventListener('click', (e) => {
         e.preventDefault();
         switchSection('resources');
+        if (window.innerWidth < 1024) toggleSidebar();
     });
     document.getElementById('side-nav-categories')?.addEventListener('click', (e) => {
         e.preventDefault();
         switchSection('categories');
+        if (window.innerWidth < 1024) toggleSidebar();
     });
     document.getElementById('side-nav-bugs')?.addEventListener('click', (e) => {
         e.preventDefault();
         switchSection('bugs');
+        if (window.innerWidth < 1024) toggleSidebar();
     });
 
     const editModal = document.getElementById('edit-modal');

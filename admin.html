@@ -65,6 +65,64 @@
             margin-left: 280px;
             padding: 3rem 4rem;
             min-height: 100vh;
+            transition: margin-left 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* --- MOBILE RESPONSIVENESS --- */
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+                box-shadow: 20px 0 50px rgba(0,0,0,0.5);
+                transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            }
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+                padding: 2rem 1.5rem;
+            }
+            .mobile-header {
+                display: flex !important;
+            }
+        }
+
+        .mobile-header {
+            display: none;
+            position: sticky;
+            top: 0;
+            z-index: 40;
+            background: rgba(10, 10, 10, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 0.5px solid var(--glass-border);
+            padding: 1rem 1.5rem;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .hamburger {
+            width: 32px; height: 32px;
+            display: flex; flex-direction: column; justify-content: center; gap: 5px;
+            cursor: pointer;
+        }
+        .hamburger span {
+            display: block; width: 100%; height: 2px;
+            background: var(--text-pure);
+            border-radius: 2px;
+            transition: 0.3s;
+        }
+
+        .sidebar-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(5px);
+            z-index: 45; display: none;
+        }
+        .sidebar-overlay.active { display: block; }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
         }
 
         .glass-card-saas {
@@ -176,8 +234,24 @@
     <!-- Admin Dashboard -->
     <div id="dashboard" style="display: none;">
         
+        <!-- Mobile Header -->
+        <header class="mobile-header">
+            <div class="flex items-center gap-3">
+                <div class="logo-box" style="width: 32px; height: 32px; font-size: 12px;">IA</div>
+                <span class="text-sm font-black uppercase tracking-widest text-white">Admin Panel</span>
+            </div>
+            <div class="hamburger" id="mobile-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </header>
+
+        <!-- Sidebar Overlay (Mobile) -->
+        <div id="sidebar-overlay" class="sidebar-overlay"></div>
+
         <!-- Sidebar -->
-        <aside class="sidebar">
+        <aside class="sidebar" id="admin-sidebar">
             <div class="sidebar-logo-saas">
                 <a href="index.html" class="flex items-center gap-3 group" style="text-decoration:none">
                     <div class="logo-box">IA</div>
@@ -215,27 +289,27 @@
         <main class="main-content">
             <!-- Resources Section -->
             <section id="resources-section">
-                <header class="flex justify-between items-end mb-12">
-                <div>
-                    <h1 class="text-3xl font-black text-[var(--text-pure)] mb-2">Resource Base.</h1>
-                    <p class="text-sm text-[var(--text-muted)] font-medium">Manage and deploy digital artifacts to the public archive.</p>
-                </div>
-                <div id="table-count" class="badge-saas" style="padding: 10px 20px; font-size: 11px;">0 ITEMS</div>
-            </header>
+                <header class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+                    <div>
+                        <h1 class="text-3xl font-black text-[var(--text-pure)] mb-2">Resource Base.</h1>
+                        <p class="text-sm text-[var(--text-muted)] font-medium">Manage and deploy digital artifacts to the public archive.</p>
+                    </div>
+                    <div id="table-count" class="badge-saas self-start md:self-auto" style="padding: 10px 20px; font-size: 11px;">0 ITEMS</div>
+                </header>
 
-            <!-- Stats Row -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-                <div class="glass-card-saas !p-6 flex flex-col items-center text-center">
-                    <span class="text-[10px] font-black uppercase text-[var(--text-muted)] tracking-widest mb-1">Total Artifacts</span>
-                    <h4 id="stat-total" class="text-2xl font-black text-[var(--accent-primary)]">0</h4>
+            <!-- Statistics -->
+            <div class="stats-grid mb-12">
+                <div class="glass-card-saas !p-6 flex flex-col items-center">
+                    <span class="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 mb-2">Total Artifacts</span>
+                    <h3 id="stat-total" class="text-4xl font-black text-[var(--accent-primary)]">0</h3>
                 </div>
-                <div class="glass-card-saas !p-6 flex flex-col items-center text-center">
-                    <span class="text-[10px] font-black uppercase text-[var(--text-muted)] tracking-widest mb-1">Categories</span>
-                    <h4 id="stat-cats" class="text-2xl font-black text-[var(--accent-primary)]">0</h4>
+                <div class="glass-card-saas !p-6 flex flex-col items-center">
+                    <span class="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 mb-2">Categories</span>
+                    <h3 id="stat-cats" class="text-4xl font-black text-purple-500">0</h3>
                 </div>
-                <div class="glass-card-saas !p-6 flex flex-col items-center text-center">
-                    <span class="text-[10px] font-black uppercase text-[var(--text-muted)] tracking-widest mb-1">Last Update</span>
-                    <h4 id="stat-date" class="text-2xl font-black text-[var(--accent-primary)]">-</h4>
+                <div class="glass-card-saas !p-6 flex flex-col items-center">
+                    <span class="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 mb-2">Last Update</span>
+                    <h3 id="stat-date" class="text-xl font-black text-blue-400">13 Mar</h3>
                 </div>
             </div>
 
@@ -278,19 +352,21 @@
                 </div>
 
                 <!-- Table Column -->
-                <div class="lg:col-span-2">
-                    <table class="saas-table">
-                        <thead>
-                            <tr>
-                                <th>IDENTIFIER</th>
-                                <th>SECTION</th>
-                                <th style="text-align:right">ACTIONS</th>
-                            </tr>
-                        </thead>
-                        <tbody id="resource-tbody">
-                            <!-- JS Inject -->
-                        </tbody>
-                    </table>
+                <div class="lg:col-span-2 overflow-x-auto" style="margin-right: -1.5rem; margin-left: -1.5rem; padding: 0 1.5rem;">
+                    <div class="min-w-[500px]">
+                        <table class="saas-table">
+                            <thead>
+                                <tr>
+                                    <th>IDENTIFIER</th>
+                                    <th>SECTION</th>
+                                    <th style="text-align:right">ACTIONS</th>
+                                </tr>
+                            </thead>
+                            <tbody id="resource-tbody">
+                                <!-- JS Inject -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </section>
 
@@ -321,18 +397,20 @@
                     </div>
 
                     <!-- Category List -->
-                    <div class="lg:col-span-2">
-                        <table class="saas-table">
-                            <thead>
-                                <tr>
-                                    <th>CATEGORY NAME</th>
-                                    <th style="text-align:right">ACTIONS</th>
-                                </tr>
-                            </thead>
-                            <tbody id="category-tbody">
-                                <!-- JS Inject -->
-                            </tbody>
-                        </table>
+                    <div class="lg:col-span-2 overflow-x-auto" style="margin-right: -1.5rem; margin-left: -1.5rem; padding: 0 1.5rem;">
+                        <div class="min-w-[400px]">
+                            <table class="saas-table">
+                                <thead>
+                                    <tr>
+                                        <th>CATEGORY NAME</th>
+                                        <th style="text-align:right">ACTIONS</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="category-tbody">
+                                    <!-- JS Inject -->
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </section>

@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="ar" data-theme="dark" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bug Report | Iraqi Archive</title>
+    <title>الإبلاغ عن مشكلة | الأرشيف العراقي</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -43,10 +43,10 @@
         <div class="container-saas flex justify-between items-center">
             <a href="index.html" class="flex items-center gap-3 group">
                 <div class="logo-box-premium">IA</div>
-                <span class="logo-text">Iraqi Archive</span>
+                <span class="logo-text">الأرشيف العراقي</span>
             </a>
             <div class="hidden md:flex items-center gap-8">
-                <a href="index.html" class="nav-link">Back to Archives</a>
+                <a href="index.html" class="nav-link">العودة للأرشيف</a>
             </div>
         </div>
     </nav>
@@ -54,29 +54,29 @@
     <main class="container-saas pt-32 pb-24 flex justify-center">
         <div class="w-full max-w-xl">
             <div class="text-center mb-10">
-                <h1 class="text-4xl font-black text-white mb-4 tracking-tight">Report a Issue.</h1>
-                <p class="text-slate-400 font-medium">Spotted a bug or have a suggestion? Let us know below.</p>
+                <h1 class="text-4xl font-black text-white mb-4 tracking-tight">الإبلاغ عن مشكلة.</h1>
+                <p class="text-slate-400 font-medium">هل لاحظت مشكلة أو لديك اقتراح؟ أخبرنا أدناه.</p>
             </div>
 
             <div class="glass-card-report">
                 <form id="bug-form" class="space-y-6">
                     <div>
-                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Identity (Name/Email)</label>
-                        <input type="text" id="b-user" class="form-input-saas" placeholder="Authenticating..." readonly required>
+                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">الهوية (الاسم/البريد)</label>
+                        <input type="text" id="b-user" class="form-input-saas" placeholder="جاري التحقق..." readonly required>
                     </div>
                     
                     <div>
-                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Subject</label>
-                        <input type="text" id="b-subject" class="form-input-saas" placeholder="Brief summary of the issue" required>
+                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">الموضوع</label>
+                        <input type="text" id="b-subject" class="form-input-saas" placeholder="وصف مختصر للمشكلة" required>
                     </div>
 
                     <div>
-                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Description</label>
-                        <textarea id="b-message" class="form-input-saas h-40 resize-none" placeholder="Explain what happened..." required></textarea>
+                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">التفاصيل</label>
+                        <textarea id="b-message" class="form-input-saas h-40 resize-none" placeholder="اشرح ما حدث..." required></textarea>
                     </div>
 
                     <button type="submit" id="submit-btn" class="btn-accent w-full py-4 flex items-center justify-center gap-3">
-                        <span id="btn-text">Transmit Transmission</span>
+                        <span id="btn-text">إرسال التقرير</span>
                         <div id="spinner" class="spinner" style="width:16px;height:16px;display:none;"></div>
                     </button>
                 </form>
@@ -87,9 +87,9 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                         </svg>
                     </div>
-                    <h3 class="text-xl font-black text-white mb-2">Transmission Received.</h3>
-                    <p class="text-slate-400 text-sm mb-8">Your report has been logged in the vault archives. The admin will review it shortly.</p>
-                    <a href="index.html" class="btn-accent !bg-white !text-black py-3 px-8 text-xs">Return to Explorer</a>
+                    <h3 class="text-xl font-black text-white mb-2">تم استلام التقرير.</h3>
+                    <p class="text-slate-400 text-sm mb-8">تم حفظ تقريرك في الأرشيف بنجاح. ستتم مراجعته قريباً من قبل الإدارة.</p>
+                    <a href="index.html" class="btn-accent !bg-white !text-black py-3 px-8 text-xs">العودة للرئيسية</a>
                 </div>
             </div>
         </div>
@@ -125,7 +125,7 @@
             const now = Date.now();
             if (lastSent && (now - lastSent) < 120000) {
                 const wait = Math.ceil((120000 - (now - lastSent)) / 1000);
-                showToast(`Transmission Cooldown: Wait ${wait}s`, 'error');
+                showToast(`يرجى الانتظار ${wait} ثانية قبل الإرسال مجدداً`, 'error');
                 return;
             }
 
@@ -133,9 +133,9 @@
             const subject = document.getElementById('b-subject').value.trim();
             const message = document.getElementById('b-message').value.trim();
 
-            if (!user || !subject || !message) return showToast('All fields required.', 'error');
+            if (!user || !subject || !message) return showToast('جميع الحقول مطلوبة.', 'error');
 
-            btnText.textContent = 'Transmitting...';
+            btnText.textContent = 'جاري الإرسال...';
             spinner.style.display = 'block';
             form.querySelector('button').disabled = true;
 
@@ -155,7 +155,7 @@
                 // Success
                 form.classList.add('hidden');
                 successView.classList.remove('hidden');
-                showToast('Report Logged Successfully.', 'success');
+                showToast('تم تسجيل التقرير بنجاح.', 'success');
 
                 // Optional: For "Send to admin's email" part, we can trigger a mailto as well
                 // but the user didn't ask for it to be an automatic redirect, just "sent to admin's email".
@@ -164,9 +164,9 @@
 
             } catch (err) {
                 console.error("Bug Report Error:", err);
-                showToast('Transmission Interrupted: ' + err.message, 'error');
+                showToast('فشل الإرسال: ' + err.message, 'error');
             } finally {
-                btnText.textContent = 'Transmit Transmission';
+                btnText.textContent = 'إرسال التقرير';
                 spinner.style.display = 'none';
                 form.querySelector('button').disabled = false;
             }

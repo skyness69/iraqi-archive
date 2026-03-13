@@ -30,7 +30,7 @@ let unsubBugs = null;
  */
 document.addEventListener('DOMContentLoaded', () => {
     console.log("IA ADMIN: Portal sequence initiated.");
-    showToast('Vault Master: System Online.', 'success');
+    showToast('مدير الخزنة: متصل.', 'success');
     
     // Bind Event Listeners
     document.getElementById('logout-btn')?.addEventListener('click', () => signOut(auth));
@@ -87,7 +87,7 @@ function initMainAuth() {
 
         const email = user.email ? user.email.toLowerCase() : "";
         if (email !== ADMIN_EMAIL.toLowerCase()) {
-            showToast('Permission Violation: Access Denied.', 'error');
+            showToast('انتهاك للصلاحيات: الوصول مرفوض.', 'error');
             setTimeout(() => window.location.href = 'index.html', 1500);
             return;
         }
@@ -175,7 +175,7 @@ function renderBugReports(items) {
     const badge = document.getElementById('bug-count-badge');
     if (!container) return;
 
-    if (badge) badge.textContent = `${items.length} Reports`;
+    if (badge) badge.textContent = `${items.length} بلاغات`;
 
     if (items.length === 0) {
         container.innerHTML = `
@@ -183,7 +183,7 @@ function renderBugReports(items) {
                 <div class="w-16 h-16 bg-white/5 border border-white/10 rounded-full flex items-center justify-center mx-auto mb-6">
                     <svg class="w-6 h-6 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                 </div>
-                <p class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Transmission sequence clear. No anomalies detected.</p>
+                <p class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">سجل البلاغات فارغ. لا توجد تقارير.</p>
             </div>
         `;
         return;
@@ -199,7 +199,7 @@ function renderBugReports(items) {
                             ${(b.user || 'A')[0].toUpperCase()}
                         </div>
                         <div class="flex flex-col">
-                            <span class="text-xs font-black text-white leading-none">${escHtml(b.user || 'Anonymous')}</span>
+                            <span class="text-xs font-black text-white leading-none">${escHtml(b.user || 'مجهول')}</span>
                             <span class="text-[9px] text-slate-500 font-bold uppercase tracking-wider mt-1">${new Date(b.createdAt).toLocaleString()}</span>
                         </div>
                     </div>
@@ -209,37 +209,35 @@ function renderBugReports(items) {
 
                     ${b.location ? `
                         <div class="flex items-center gap-2 mt-5">
-                            <span class="text-[8px] font-black uppercase tracking-widest text-slate-600">Archive Reference</span>
+                            <span class="text-[8px] font-black uppercase tracking-widest text-slate-600">مرجع الأرشيف</span>
                             <span class="bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 px-3 py-1 rounded-md text-[9px] font-bold">
                                 ${escHtml(b.location)}
                             </span>
                         </div>
                     ` : ''}
-                </div>
-
-                <!-- Actions Section -->
+                </div>                <!-- Actions Section -->
                 <div class="flex items-center gap-3 shrink-0">
                     <a href="mailto:${ADMIN_EMAIL}?subject=Re: ${escQ(b.subject)}&body=Regarding your report: %0D%0A%0D%0A${escQ(b.message)}" 
                        class="flex items-center gap-2 px-5 py-3 rounded-xl bg-white text-black text-[10px] font-black uppercase tracking-widest hover:bg-[var(--accent-primary)] hover:text-black transition-all">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
-                        Email Entry
+                        مراسلة
                     </a>
                     <button onclick="deleteBugReq('${b.id}')" 
                             class="flex items-center gap-2 px-5 py-3 rounded-xl border border-red-500/20 bg-red-500/5 text-red-400 text-[10px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                        Resolve
+                        حل وإزالة
                     </button>
-                </div>
+                </div>v>
             </div>
         </div>
     `).join('');
 }
 
 window.deleteBugReq = (id) => {
-    if (confirm("Resolve and purge this report?")) {
+    if (confirm("هل أنت متأكد من حل وإزالة هذا البلاغ؟")) {
         deleteDoc(doc(db, BUG_COL, id))
-            .then(() => showToast("Report Resolved.", "success"))
-            .catch(err => showToast("Failed: " + err.message, "error"));
+            .then(() => showToast("تم حل البلاغ.", "success"))
+            .catch(err => showToast("فشل: " + err.message, "error"));
     }
 };
 
@@ -251,7 +249,7 @@ function renderCategoriesList(items) {
     if (!tbody) return;
 
     if (items.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="2" class="text-center py-20 text-slate-500 font-bold uppercase tracking-widest text-[10px]">Portal Categories Reset. Initializing...</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="2" class="text-center py-20 text-slate-500 font-bold uppercase tracking-widest text-[10px]">لا توجد أقسام مسجلة. جاري التهيئة...</td></tr>';
         return;
     }
 
@@ -260,8 +258,8 @@ function renderCategoriesList(items) {
             <td class="pl-6"><p style="font-weight:800; color:var(--text-pure); font-size:14px;">${escHtml(catName)}</p></td>
             <td class="pr-6 text-right">
                 <div class="flex justify-end gap-2">
-                    <button onclick="setEditMode('${index}','${escQ(catName)}')" class="btn-accent !py-2 !px-4 !text-[9px] !rounded-lg !bg-slate-800 !text-white hover:!bg-white hover:!text-black">EDIT</button>
-                    <button onclick="deleteCategoryReq('${index}','${escQ(catName)}')" class="!py-2 !px-4 !text-[9px] !rounded-lg border border-red-500/20 bg-red-500/5 text-red-400 font-bold hover:bg-red-500 hover:text-white transition-all">DELETE</button>
+                    <button onclick="setEditMode('${index}','${escQ(catName)}')" class="btn-accent !py-2 !px-4 !text-[9px] !rounded-lg !bg-slate-800 !text-white hover:!bg-white hover:!text-black">تعديل</button>
+                    <button onclick="deleteCategoryReq('${index}','${escQ(catName)}')" class="!py-2 !px-4 !text-[9px] !rounded-lg border border-red-500/20 bg-red-500/5 text-red-400 font-bold hover:bg-red-500 hover:text-white transition-all">حذف</button>
                 </div>
             </td>
         </tr>
@@ -272,7 +270,7 @@ async function handleCategorySubmit(e) {
     e.preventDefault();
     const nameInput = document.getElementById('c-name');
     const newName = nameInput?.value.trim();
-    if (!newName) return showToast('Name required.', 'error');
+    if (!newName) return showToast('الإسم مطلوب.', 'error');
 
     let updatedList = [...categories];
     let oldName = null;
@@ -281,7 +279,7 @@ async function handleCategorySubmit(e) {
         oldName = updatedList[parseInt(editingCatId)];
         updatedList[parseInt(editingCatId)] = newName;
     } else {
-        if (updatedList.includes(newName)) return showToast('Duplicate.', 'error');
+        if (updatedList.includes(newName)) return showToast('موجود مسبقاً.', 'error');
         updatedList.push(newName);
     }
 
@@ -296,15 +294,15 @@ async function handleCategorySubmit(e) {
             );
             await Promise.all(updatePromises);
             if (updatePromises.length > 0) {
-                showToast(`Migrated ${updatePromises.length} artifacts to new category.`, 'success');
+                showToast(`تم نقل ${updatePromises.length} موارد للقسم الجديد.`, 'success');
             }
         }
         
         nameInput.value = '';
         if (editingCatId !== null) clearEditMode();
-        showToast('Vault Synchronized.', 'success');
+        showToast('تمت المزامنة بنجاح.', 'success');
     } catch (err) {
-        showToast(`Sync Failed: ${err.message}`, 'error');
+        showToast(`فشل المزامنة: ${err.message}`, 'error');
     }
 }
 
@@ -313,13 +311,13 @@ window.setEditMode = (index, name) => {
     const nameInput = document.getElementById('c-name');
     const btnText = document.querySelector('#cat-add-btn span');
     if (nameInput) nameInput.value = name;
-    if (btnText) btnText.textContent = 'Apply Rename';
+    if (btnText) btnText.textContent = 'تطبيق التعديل';
     
     if (!document.getElementById('cat-cancel')) {
         const cancel = document.createElement('button');
         cancel.id = 'cat-cancel';
         cancel.type = 'button';
-        cancel.textContent = 'Discard Edit';
+        cancel.textContent = 'إلغاء التعديل';
         cancel.className = 'w-full mt-4 text-[10px] font-black uppercase tracking-tighter text-slate-500 hover:text-white transition-colors';
         cancel.onclick = clearEditMode;
         document.getElementById('cat-form')?.appendChild(cancel);
@@ -332,16 +330,16 @@ function clearEditMode() {
     const nameInput = document.getElementById('c-name');
     const btnText = document.querySelector('#cat-add-btn span');
     if (nameInput) nameInput.value = '';
-    if (btnText) btnText.textContent = 'Create Category';
+    if (btnText) btnText.textContent = 'إضافة قسم';
     document.getElementById('cat-cancel')?.remove();
 }
 
 window.deleteCategoryReq = (index, name) => {
-    if (confirm(`Remove "${name}"?`)) {
+    if (confirm(`هل أنت متأكد من حذف "${name}"؟`)) {
         let updatedList = categories.filter((_, i) => i !== parseInt(index));
         setDoc(doc(db, COL, CAT_DOC_ID), { list: updatedList })
-            .then(() => showToast(`Category Purged.`, 'success'))
-            .catch(err => showToast(`Sync Failed: ${err.message}`, 'error'));
+            .then(() => showToast(`تم الحذف.`, 'success'))
+            .catch(err => showToast(`فشل الحذف: ${err.message}`, 'error'));
     }
 };
 
@@ -353,10 +351,10 @@ function renderResourcesTable(items) {
     const countLabel = document.getElementById('table-count');
     if (!tbody || !countLabel) return;
 
-    countLabel.textContent = `${items.length} ARCHIVED`;
+    countLabel.textContent = `${items.length} محفوظ`;
 
     if (items.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="3" class="text-center py-24 text-slate-500 uppercase font-black text-xs tracking-widest">No artifacts found.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="3" class="text-center py-24 text-slate-500 uppercase font-black text-xs tracking-widest">لا توجد موارد محفوظة.</td></tr>';
         return;
     }
 
@@ -371,11 +369,11 @@ function renderResourcesTable(items) {
                     </div>
                 </div>
             </td>
-            <td><span class="inline-block px-3 py-1 rounded-full bg-slate-900 border border-white/5 text-[9px] font-black text-slate-400 uppercase tracking-widest">${escHtml(r.category || 'Legacy')}</span></td>
+            <td><span class="inline-block px-3 py-1 rounded-full bg-slate-900 border border-white/5 text-[9px] font-black text-slate-400 uppercase tracking-widest">${escHtml(r.category || 'أخرى')}</span></td>
             <td class="pr-6 text-right">
                 <div class="flex justify-end gap-2">
-                    <button onclick="reqEditResource('${r.id}','${escQ(r.title)}','${escQ(r.desc)}','${escQ(r.url)}','${escQ(r.category)}')" class="btn-accent !py-2 !px-4 !text-[9px] !rounded-lg !bg-white !text-black hover:!bg-red-500 hover:!text-white">EDIT</button>
-                    <button onclick="reqDeleteResource('${r.id}','${escQ(r.title)}')" class="!py-2 !px-4 !text-[9px] !rounded-lg border border-red-500/20 bg-red-500/5 text-red-400 font-bold hover:bg-red-500 hover:text-white transition-all">DELETE</button>
+                    <button onclick="reqEditResource('${r.id}','${escQ(r.title)}','${escQ(r.desc)}','${escQ(r.url)}','${escQ(r.category)}')" class="btn-accent !py-2 !px-4 !text-[9px] !rounded-lg !bg-white !text-black hover:!bg-red-500 hover:!text-white">تعديل</button>
+                    <button onclick="reqDeleteResource('${r.id}','${escQ(r.title)}')" class="!py-2 !px-4 !text-[9px] !rounded-lg border border-red-500/20 bg-red-500/5 text-red-400 font-bold hover:bg-red-500 hover:text-white transition-all">حذف</button>
                 </div>
             </td>
         </tr>
@@ -388,13 +386,13 @@ async function handleAddResource(e) {
     const desc = document.getElementById('f-desc')?.value.trim();
     const url = document.getElementById('f-url')?.value.trim();
     const category = document.getElementById('f-category')?.value;
-    if (!title || !desc || !url || !category) return showToast('Fail: All fields required.', 'error');
+    if (!title || !desc || !url || !category) return showToast('فشل: جميع الحقول مطلوبة.', 'error');
     try {
         await addDoc(collection(db, COL), { title, desc, url, category, addedAt: new Date().toISOString() });
         document.getElementById('add-form')?.reset();
-        showToast(`Resource Deployed.`, 'success');
+        showToast(`تم نشر المورد بنجاح.`, 'success');
     } catch (err) {
-        showToast(`Fail: ${err.message}`, 'error');
+        showToast(`فشل: ${err.message}`, 'error');
     }
 }
 
@@ -420,18 +418,18 @@ async function handleEditResource(e) {
     const category = document.getElementById('e-category').value;
     try {
         await updateDoc(doc(db, COL, id), { title, desc, url, category });
-        showToast('Resource Updated.', 'success');
+        showToast('تم تحديث المورد بنجاح.', 'success');
         closeEditModal();
     } catch (err) {
-        showToast(`Fail: ${err.message}`, 'error');
+        showToast(`فشل: ${err.message}`, 'error');
     }
 }
 
 window.reqDeleteResource = (id, title) => {
-    if (confirm(`Delete "${title}"?`)) {
+    if (confirm(`هل أنت متأكد من حذف "${title}"؟`)) {
         deleteDoc(doc(db, COL, id))
-            .then(() => showToast(`Resource Deleted.`, 'success'))
-            .catch(err => showToast(`Fail: ${err.message}`, 'error'));
+            .then(() => showToast(`تم حذف المورد.`, 'success'))
+            .catch(err => showToast(`فشل الحذف: ${err.message}`, 'error'));
     }
 };
 
@@ -446,7 +444,7 @@ function updateCategoryOptions(cats) {
     const eCat = document.getElementById('e-category');
     if (!fCat || !eCat) return;
     const html = `
-        <option value="">-- SELECT SECTION --</option>
+        <option value="">-- اختر القسم --</option>
         ${cats.map(cName => `<option value="${escHtml(cName)}">${escHtml(cName)}</option>`).join('')}
     `;
     fCat.innerHTML = html;

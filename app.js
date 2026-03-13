@@ -122,7 +122,7 @@ function renderCategoryTabs() {
     const container = document.getElementById('category-filters');
     if (!container) return;
 
-    const allBtn = `<button class="cat-pill ${currentCategory === 'All' ? 'active' : ''}" data-category="All">All Resources</button>`;
+    const allBtn = `<button class="cat-pill ${currentCategory === 'All' ? 'active' : ''}" data-category="All">جميع الموارد</button>`;
     const catBtns = categories.map(catName => `
         <button class="cat-pill ${currentCategory === catName ? 'active' : ''}" data-category="${escQ(catName || '')}">
             ${escHtml(catName || '')}
@@ -172,6 +172,8 @@ function initAuthObserver() {
                     if (!token.claims.email_verified) {
                         console.log('Refreshing token for Firestore verification...');
                         await user.getIdToken(true);
+                        // Delay slightly to let Firestore SDK pick up the new token
+                        await new Promise(r => setTimeout(r, 200));
                     }
                 } catch (e) {
                     console.error('Token refresh check failed:', e);
@@ -334,8 +336,8 @@ function renderResources() {
     if (filtered.length === 0) {
         grid.innerHTML = `
             <div style="grid-column:1/-1;padding:4rem 0;text-align:center;color:var(--text-muted);">
-                <p style="font-size:1rem;font-weight:600;margin-bottom:0.5rem;">No resources found</p>
-                <p style="font-size:0.875rem;">${term ? `No results for "${term}"` : 'The archive is empty for this category.'}</p>
+                <p style="font-size:1rem;font-weight:600;margin-bottom:0.5rem;" dir="rtl">لم يتم العثور على موارد</p>
+                <p style="font-size:0.875rem;" dir="rtl">${term ? `لا توجد نتائج مطابقة لـ "${term}"` : 'الأرشيف فارغ حالياً في هذا القسم.'}</p>
             </div>`;
         renderPagination(0, 0);
         return;
@@ -411,7 +413,7 @@ function cardTemplate(item) {
             <div class="card-icon-saas">${initials}</div>
             <button onclick="event.stopPropagation(); handleSave('${item.id}')"
                     id="save-btn-${item.id}"
-                    title="${isSaved ? 'Remove' : 'Save'}"
+                    title="${isSaved ? 'إزالة من المفضلة' : 'إضافة للمفضلة'}"
                     class="heart-btn-saas ${isSaved ? 'saved' : ''}"
                     style="position: relative; top: 0; right: 0; margin-left: auto;">
                 <svg fill="${isSaved ? 'white' : 'none'}" stroke="${isSaved ? 'white' : 'var(--text-muted)'}"
@@ -424,12 +426,12 @@ function cardTemplate(item) {
             </button>
         </div>
         <!-- Body -->
-        <h3 class="card-title" dir="${textDir}">${item.title || 'Untitled'}</h3>
+        <h3 class="card-title" dir="${textDir}">${item.title || 'بدون عنوان'}</h3>
         <p class="card-desc" dir="${textDir}">${desc}</p>
         <!-- Footer -->
         <div class="card-footer">
-            <span class="badge-saas">${item.category || 'Other'}</span>
-            <a href="${item.url || '#'}" target="_blank" rel="noopener noreferrer" class="card-link" onclick="event.stopPropagation()">Visit →</a>
+            <span class="badge-saas">${item.category || 'أخرى'}</span>
+            <a href="${item.url || '#'}" target="_blank" rel="noopener noreferrer" class="card-link" onclick="event.stopPropagation()">زيارة ←</a>
         </div>
     </div>`;
 }
@@ -461,7 +463,7 @@ window.handleSave = async (resourceId) => {
         // onSnapshot fires → savedIds updates → renderArchive() re-runs automatically
     } catch (error) {
         console.error('Save error:', error);
-        showToast('Could not update favorites. Check your connection.', 'error');
+        showToast('لم نتمكن من الحفظ. يرجى التحقق من اتصالك والمحاولة لاحقاً.', 'error');
     }
 };
 
@@ -531,13 +533,13 @@ window.showDetails = (id) => {
         const hasArabic = isArabic(item.title || '') || isArabic(item.desc || '');
         const textDir = hasArabic ? 'rtl' : 'ltr';
 
-        titleEl.textContent = item.title || 'Untitled';
+        titleEl.textContent = item.title || 'بدون عنوان';
         titleEl.dir = textDir;
         
-        descEl.textContent = item.desc || 'No description available.';
+        descEl.textContent = item.desc || 'لا يوجد وصف متاح.';
         descEl.dir = textDir;
         
-        badgeEl.textContent = item.category || 'Other';
+        badgeEl.textContent = item.category || 'أخرى';
         linkEl.href = item.url || '#';
         iconEl.textContent = (item.title || '?')[0].toUpperCase();
         modal.classList.add('open');

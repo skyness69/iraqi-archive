@@ -1,12 +1,13 @@
-<html lang="en" data-theme="dark">
+<!DOCTYPE html>
+<html lang="ar" data-theme="dark" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard | Iraqi Archive</title>
+    <title>مدير الخزنة | الأرشيف العراقي</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=4.0">
+    <link rel="stylesheet" href="style.css?v=5.0">
     <style>
         /* --- ADMIN SPECIFIC OVERRIDES --- */
         body { background: var(--bg-deep); color: var(--text-dim); }
@@ -14,11 +15,11 @@
         .sidebar {
             width: 280px;
             background: var(--glass-nav);
-            border-right: 0.5px solid var(--glass-border);
+            border-left: 0.5px solid var(--glass-border); /* Changed from border-right */
             backdrop-filter: blur(25px);
             height: 100vh;
             position: fixed;
-            top: 0; left: 0;
+            top: 0; right: 0; /* Changed from left: 0 */
             display: flex;
             flex-direction: column;
             padding: 2.5rem 1.5rem;
@@ -65,24 +66,24 @@
         }
 
         .main-content {
-            margin-left: 280px;
+            margin-right: 280px; /* Changed from margin-left */
             padding: 3rem 4rem;
             min-height: 100vh;
-            transition: margin-left 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: margin-right 0.4s cubic-bezier(0.16, 1, 0.3, 1); /* Changed from margin-left */
         }
 
         /* --- MOBILE RESPONSIVENESS --- */
         @media (max-width: 1024px) {
             .sidebar {
-                transform: translateX(-100%);
-                box-shadow: 20px 0 50px rgba(0,0,0,0.5);
+                transform: translateX(100%); /* Changed from translateX(-100%) */
+                box-shadow: -20px 0 50px rgba(0,0,0,0.5); /* Adjusted shadow for RTL */
                 transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
             }
             .sidebar.active {
                 transform: translateX(0);
             }
             .main-content {
-                margin-left: 0;
+                margin-right: 0; /* Changed from margin-left */
                 padding: 2rem 1.5rem;
             }
             .mobile-header {
@@ -182,7 +183,7 @@
         }
 
         .saas-table th {
-            text-align: left;
+            text-align: right; /* Changed from left */
             padding: 0 1.5rem;
             font-size: 10px;
             font-weight: 800;
@@ -199,15 +200,15 @@
         }
 
         .saas-table td:first-child {
-            border-left: 0.5px solid var(--glass-border);
-            border-top-left-radius: 1.25rem;
-            border-bottom-left-radius: 1.25rem;
+            border-right: 0.5px solid var(--glass-border); /* Changed from border-left */
+            border-top-right-radius: 1.25rem; /* Changed from border-top-left-radius */
+            border-bottom-right-radius: 1.25rem; /* Changed from border-bottom-left-radius */
         }
 
         .saas-table td:last-child {
-            border-right: 0.5px solid var(--glass-border);
-            border-top-right-radius: 1.25rem;
-            border-bottom-right-radius: 1.25rem;
+            border-left: 0.5px solid var(--glass-border); /* Changed from border-right */
+            border-top-left-radius: 1.25rem; /* Changed from border-top-right-radius */
+            border-bottom-left-radius: 1.25rem; /* Changed from border-bottom-right-radius */
         }
 
         /* Fix for invisible text in dropdowns */
@@ -224,6 +225,26 @@
             display: none; align-items: center; justify-content: center; z-index: 100;
         }
         @keyframes fadeInModal { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+
+        /* New RTL specific styles */
+        @media (max-width: 1024px) {
+            transition: right 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 50;
+        }
+
+        .main-content {
+            margin-right: 0;
+            transition: margin-right 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @media (min-width: 1024px) {
+            .sidebar-admin {
+                transform: translateX(0) !important;
+            }
+            .main-content {
+                margin-right: 280px; 
+            }
+        }
     </style>
 </head>
 <body class="antialiased">
@@ -238,201 +259,254 @@
     <div id="dashboard" style="display: none;">
         
         <!-- Mobile Header -->
-        <header class="mobile-header">
-            <div class="flex items-center gap-3">
-                <div class="logo-box">IA</div>
-                <span class="text-sm font-black uppercase tracking-widest text-white">Admin Panel</span>
+        <header class="lg:hidden bg-[#0c0a15]/80 backdrop-blur-md border-b border-white/5 sticky top-0 z-40 px-4 py-4 flex items-center justify-between">
+            <div class="flex items-center space-x-3 rtl:space-x-reverse cursor-pointer group">
+                <div class="w-8 h-8 rounded-lg bg-[var(--accent-primary)]/10 border border-[var(--accent-primary)]/20 flex items-center justify-center font-black text-xs text-[var(--accent-primary)]">IA</div>
+                <span class="font-bold text-sm tracking-tight text-white">مدير الخزنة</span>
             </div>
-            <div class="hamburger" id="mobile-toggle">
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
+            <button id="mobile-menu-btn" class="text-slate-400 hover:text-white p-2">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+            </button>
         </header>
 
         <!-- Sidebar Overlay (Mobile) -->
         <div id="sidebar-overlay" class="sidebar-overlay"></div>
 
         <!-- Sidebar -->
-        <aside class="sidebar" id="admin-sidebar">
-            <div class="sidebar-logo-saas">
-                <a href="index.html" class="flex items-center gap-3 group" style="text-decoration:none">
-                    <div class="logo-box">IA</div>
-                    <span style="font-weight:800; color:var(--text-pure); font-size:18px;">Vault Master</span>
-                </a>
+    <aside id="admin-sidebar" class="sidebar-admin fixed top-0 right-0 h-screen w-[280px] bg-[#0c0a15]/95 backdrop-blur-xl border-l border-white/5 flex flex-col transform translate-x-full lg:translate-x-0">
+        <!-- Logo Area -->
+        <div class="p-6 border-b border-white/5 flex items-center justify-between">
+            <a href="index.html" class="flex items-center space-x-3 rtl:space-x-reverse cursor-pointer group">
+                <div class="w-10 h-10 rounded-xl bg-[var(--accent-primary)]/10 border border-[var(--accent-primary)]/20 flex items-center justify-center font-black text-[var(--accent-primary)] group-hover:scale-105 transition-transform shadow-[0_0_15px_rgba(99,66,255,0.2)]">IA</div>
+                <div class="flex flex-col">
+                    <span class="font-bold text-lg tracking-tight text-white leading-none">مدير الخزنة</span>
+                    <span class="text-[10px] font-bold text-[var(--accent-primary)] uppercase mt-1">غرفة التحكم</span>
+                </div>
+            </a>
+            <!-- Mobile Close Btn -->
+            <button id="close-sidebar-btn" class="lg:hidden text-slate-400 hover:text-white p-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+
+        <!-- Navigation Links -->
+        <nav class="flex-1 overflow-y-auto py-6 px-4 space-y-2">
+            
+            <p class="px-4 text-[10px] font-black text-slate-500 uppercase mb-2 mt-4">الإدارة الرئيسية</p>
+            <a href="#dashboard" class="nav-link active flex items-center space-x-3 rtl:space-x-reverse px-4 py-3 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-white/5 transition-all group">
+                <svg class="w-5 h-5 text-slate-500 group-hover:text-[var(--accent-primary)] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+                <span>اللوحة الرئيسية</span>
+            </a>
+            <a href="#resources" class="nav-link flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-white/5 transition-all group">
+                <div class="flex items-center space-x-3 rtl:space-x-reverse">
+                    <svg class="w-5 h-5 text-slate-500 group-hover:text-blue-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg>
+                    <span>قاعدة الموارد</span>
+                </div>
+                <!-- Badge -->
+                <span id="resource-count-badge" class="bg-blue-500/20 text-blue-400 py-0.5 px-2 rounded-full text-[10px] font-bold">0</span>
+            </a>
+            
+            <p class="px-4 text-[10px] font-black text-slate-500 uppercase mb-2 mt-8">العمليات</p>
+            <a href="#bug-reports" class="nav-link flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-white/5 transition-all group">
+                <div class="flex items-center space-x-3 rtl:space-x-reverse">
+                    <svg class="w-5 h-5 text-slate-500 group-hover:text-red-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                    <span>تقارير المشاكل</span>
+                </div>
+                <!-- Alert Dot -->
+                <div class="w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.6)] hidden"></div>
+            </a>
+            <a href="#add-resource" class="nav-link flex items-center space-x-3 rtl:space-x-reverse px-4 py-3 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-white/5 transition-all group">
+                <svg class="w-5 h-5 text-slate-500 group-hover:text-green-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                <span>نشر مورد جديد</span>
+            </a>
+
+            <p class="px-4 text-[10px] font-black text-slate-500 uppercase mb-2 mt-8">حالة الخادم</p>
+            <div class="px-4 py-3">
+                <div class="flex items-center space-x-3 rtl:space-x-reverse text-sm text-green-400 font-medium">
+                    <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]"></div>
+                    <span>الأنظمة تعمل</span>
+                </div>
             </div>
+        </nav>
 
-            <nav class="sidebar-nav-saas">
-                <a href="#" id="side-nav-resources" class="active">
-                    <svg style="width:18px;height:18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
-                    Resources
-                </a>
-                <a href="#" id="side-nav-categories">
-                    <svg style="width:18px;height:18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h10a2 2 0 012 2v14a2 2 0 01-2 2H7a2 2 0 01-2-2V5a2 2 0 012-2z"/></svg>
-                    Categories
-                </a>
-                <a href="#" id="side-nav-bugs">
-                    <svg style="width:18px;height:18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                    Bug Reports
-                </a>
-            </nav>
+        <!-- Sidebar Footer -->
+        <div class="p-6 border-t border-white/5">
+            <button id="logout-btn" class="w-full flex items-center justify-center space-x-2 rtl:space-x-reverse py-3 px-4 rounded-xl text-sm font-bold text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                <span>إنهاء الجلسة</span>
+            </button>
+        </div>
+    </aside>
 
-            <div style="margin-top:auto; padding-top:2rem; border-top:0.5px solid var(--glass-border);">
-                <div class="flex items-center gap-3 px-4 py-3">
-                    <div id="admin-avatar" class="w-8 h-8 rounded-full bg-[var(--accent-primary)]/20 text-[var(--accent-primary)] flex items-center justify-center font-black text-xs">?</div>
-                    <div class="overflow-hidden">
-                        <p id="admin-email" class="text-[10px] font-bold text-[var(--text-pure)] truncate">Admin Account</p>
-                        <button id="logout-btn" class="text-[9px] font-black uppercase text-[var(--accent-hover)] hover:text-[var(--accent-primary)] transition-colors mt-1">Exit Portal</button>
+    <!-- Main Content Area -->
+    <main class="main-content min-h-screen">
+        
+        <!-- Top Header for Mobile -->
+        <header class="lg:hidden bg-[#0c0a15]/80 backdrop-blur-md border-b border-white/5 sticky top-0 z-40 px-4 py-4 flex items-center justify-between">
+            <div class="flex items-center space-x-3 rtl:space-x-reverse cursor-pointer group">
+                <div class="w-8 h-8 rounded-lg bg-[var(--accent-primary)]/10 border border-[var(--accent-primary)]/20 flex items-center justify-center font-black text-xs text-[var(--accent-primary)]">IA</div>
+                <span class="font-bold text-sm tracking-tight text-white">مدير الخزنة</span>
+            </div>
+            <button id="mobile-menu-btn" class="text-slate-400 hover:text-white p-2">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+            </button>
+        </header>
+
+            <!-- Dashboard View -->
+            <section id="view-dashboard" class="animate-in admin-section">
+                <!-- Page Header -->
+                <div class="mb-10">
+                    <h1 class="text-2xl md:text-3xl font-black text-white leading-none">موجز النظام</h1>
+                    <p class="text-slate-400 mt-2 text-sm">نظرة عامة على المقاييس والنشاطات الأخيرة في الأرشيف.</p>
+                </div>
+
+                <!-- Stats Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
+                    <!-- Stat Card 1 -->
+                    <div class="glass-card p-6 flex items-center space-x-4 rtl:space-x-reverse relative overflow-hidden group">
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-[var(--accent-glow)] rounded-full blur-3xl opacity-20 group-hover:opacity-40 transition-opacity"></div>
+                        <div class="w-14 h-14 rounded-2xl bg-[var(--accent-primary)]/10 flex items-center justify-center border border-[var(--accent-primary)]/20 text-[var(--accent-primary)] relative z-10">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg>
+                        </div>
+                        <div class="relative z-10">
+                            <p class="text-[10px] font-bold text-slate-500 uppercase mb-1">إجمالي الموارد</p>
+                            <h3 id="stat-total-resources" class="text-3xl font-black text-white leading-none">0</h3>
+                        </div>
+                    </div>
+                    
+                    <!-- Stat Card 2 -->
+                    <div class="glass-card p-6 flex items-center space-x-4 rtl:space-x-reverse relative overflow-hidden group">
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500/20 rounded-full blur-3xl opacity-20 group-hover:opacity-40 transition-opacity"></div>
+                        <div class="w-14 h-14 rounded-2xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20 text-blue-400 relative z-10">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                        </div>
+                        <div class="relative z-10">
+                            <p class="text-[10px] font-bold text-slate-500 uppercase mb-1">المضافة حديثاً</p>
+                            <h3 id="stat-new-resources" class="text-3xl font-black text-white leading-none">0</h3>
+                        </div>
+                    </div>
+                    
+                    <!-- Stat Card 3 -->
+                    <div class="glass-card p-6 flex items-center space-x-4 rtl:space-x-reverse relative overflow-hidden group">
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-red-500/20 rounded-full blur-3xl opacity-20 group-hover:opacity-40 transition-opacity"></div>
+                        <div class="w-14 h-14 rounded-2xl bg-red-500/10 flex items-center justify-center border border-red-500/20 text-red-400 relative z-10">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                        </div>
+                        <div class="relative z-10">
+                            <p class="text-[10px] font-bold text-slate-500 uppercase mb-1">تقارير نشطة</p>
+                            <h3 id="stat-active-reports" class="text-3xl font-black text-white leading-none">0</h3>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </aside>
+            </section>
 
-        <!-- Main Content -->
-        <main class="main-content">
-            <!-- Resources Section -->
-            <section id="resources-section">
-                <header class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
-                    <div>
-                        <h1 class="text-3xl font-black text-[var(--text-pure)] mb-2">Resource Base.</h1>
-                        <p class="text-sm text-[var(--text-muted)] font-medium">Manage and deploy digital artifacts to the public archive.</p>
-                    </div>
-                    <div id="table-count" class="badge-saas self-start md:self-auto" style="padding: 10px 20px; font-size: 11px;">0 ITEMS</div>
-                </header>
+            <!-- Publish Wrapper -->
+            <div id="publish-wrapper" class="max-w-3xl mx-auto">
+                <div class="mb-8">
+                    <h1 class="text-2xl md:text-3xl font-black text-white leading-none" id="form-main-title">نشر مورد جديد</h1>
+                    <p class="text-slate-400 mt-2 text-sm">أضف أداة أو مورد جديد إلى الأرشيف.</p>
+                </div>
 
-            <!-- Statistics -->
-            <div class="stats-grid mb-12">
-                <div class="glass-card-saas !p-6 flex flex-col items-center">
-                    <span class="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 mb-2">Total Artifacts</span>
-                    <h3 id="stat-total" class="text-4xl font-black text-[var(--accent-primary)]">0</h3>
-                </div>
-                <div class="glass-card-saas !p-6 flex flex-col items-center">
-                    <span class="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 mb-2">Categories</span>
-                    <h3 id="stat-cats" class="text-4xl font-black text-purple-500">0</h3>
-                </div>
-                <div class="glass-card-saas !p-6 flex flex-col items-center">
-                    <span class="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 mb-2">Last Update</span>
-                    <h3 id="stat-date" class="text-xl font-black text-blue-400">13 Mar</h3>
-                </div>
-            </div>
+                <div class="glass-card p-6 md:p-8">
+                    <form id="add-resource-form" class="space-y-6">
+                        <input type="hidden" id="edit-id" value="">
+                        
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-bold text-slate-500 uppercase">اسم المورد</label>
+                            <input type="text" id="title" required placeholder="مثال: Tailwind CSS"
+                                class="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-600 focus:outline-none focus:border-[var(--accent-primary)] transition-colors">
+                        </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
-                
-                <!-- Add Form Column -->
-                <div class="lg:col-span-1">
-                    <div class="glass-card-saas">
-                        <h3 class="text-lg font-bold text-[var(--text-pure)] mb-6">Deploy Artifact</h3>
-                        <form id="add-form">
-                            <div class="form-group mb-5">
-                                <label>Site Title</label>
-                                <input type="text" id="f-title" class="form-input-saas" placeholder="e.g. Supabase">
-                            </div>
-                            <div class="form-group mb-5">
-                                <label>Description</label>
-                                <textarea id="f-desc" class="form-input-saas" style="height: 100px; resize: none;" placeholder="Project summary..."></textarea>
-                            </div>
-                            <div class="form-group mb-5">
-                                <label>Access URL</label>
-                                <input type="url" id="f-url" class="form-input-saas" placeholder="https://...">
-                            </div>
-                            <div class="form-group mb-8">
-                                <label>Section</label>
-                                <select id="f-category" class="form-input-saas">
-                                    <option value="">Select Category</option>
-                                    <option value="Frontend">Frontend</option>
-                                    <option value="Backend">Backend</option>
-                                    <option value="Tools">Tools</option>
-                                    <option value="AI">AI Tools</option>
-                                    <option value="Design">Design</option>
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-bold text-slate-500 uppercase">رابط المورد</label>
+                            <input type="url" id="link" required placeholder="https://..."
+                                class="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-600 focus:outline-none focus:border-[var(--accent-primary)] transition-colors text-left dir-ltr">
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-bold text-slate-500 uppercase">التصنيف الرئيسي</label>
+                                <select id="category" required
+                                    class="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[var(--accent-primary)] transition-colors">
+                                    <option value="">اختر تصنيف</option>
+                                    <option value="css">CSS / UI</option>
+                                    <option value="js">JavaScript / JS / TS</option>
+                                    <option value="tools">أدوات / Tools</option>
+                                    <option value="icons">أيقونات / Icons</option>
+                                    <option value="colors">ألوان / Colors</option>
+                                    <option value="fonts">خطوط / Fonts</option>
+                                    <option value="other">أخرى / Other</option>
                                 </select>
                             </div>
-                            <button type="submit" id="add-btn" class="btn-accent w-full flex items-center justify-center gap-3">
-                                <span id="add-btn-text">Deploy Resource</span>
-                                <div id="add-btn-spinner" class="spinner" style="width:16px;height:16px;display:none;border-color:rgba(0,0,0,0.1);border-top-color:#000;"></div>
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-bold text-slate-500 uppercase">نوع الشارة</label>
+                                <select id="badge" required
+                                    class="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[var(--accent-primary)] transition-colors">
+                                    <option value="">اختر شارة</option>
+                                    <option value="new">جديد</option>
+                                    <option value="free">مجاني</option>
+                                    <option value="premium">مميز</option>
+                                    <option value="ai">ذكاء اصطناعي</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-bold text-slate-500 uppercase">وصف قصير</label>
+                            <textarea id="description" rows="3" required placeholder="وصف موجز للمورد..."
+                                class="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-600 focus:outline-none focus:border-[var(--accent-primary)] transition-colors"></textarea>
+                        </div>
+
+                        <div class="flex gap-4">
+                            <button type="submit" id="submit-btn" class="flex-1 bg-[var(--accent-primary)] hover:bg-[var(--accent-hover)] text-black font-bold py-4 rounded-xl transition-colors flex items-center justify-center gap-3">
+                                <span id="submit-btn-text">نشر المورد</span>
+                                <div id="submit-btn-spinner" class="spinner w-4 h-4 border-2 border-black/20 border-t-black rounded-full animate-spin hidden"></div>
                             </button>
-                        </form>
-                    </div>
-                </div>
-
-                <!-- Table Column -->
-                <div class="lg:col-span-2 overflow-x-auto" style="margin-right: -1.5rem; margin-left: -1.5rem; padding: 0 1.5rem;">
-                    <div class="min-w-[500px]">
-                        <table class="saas-table">
-                            <thead>
-                                <tr>
-                                    <th>IDENTIFIER</th>
-                                    <th>SECTION</th>
-                                    <th style="text-align:right">ACTIONS</th>
-                                </tr>
-                            </thead>
-                            <tbody id="resource-tbody">
-                                <!-- JS Inject -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Categories Section -->
-            <section id="categories-section" class="hidden">
-                <header class="flex justify-between items-end mb-12">
-                    <div>
-                        <h1 class="text-3xl font-black text-[var(--text-pure)] mb-2">Category Base.</h1>
-                        <p class="text-sm text-[var(--text-muted)] font-medium">Manage the sections used for sorting your archive.</p>
-                    </div>
-                </header>
-
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
-                    <!-- Add Category Form -->
-                    <div class="lg:col-span-1">
-                        <div class="glass-card-saas">
-                            <h3 class="text-lg font-bold text-[var(--text-pure)] mb-6">New Category</h3>
-                            <form id="cat-form">
-                                <div class="form-group mb-8">
-                                    <label>Category Name</label>
-                                    <input type="text" id="c-name" class="form-input-saas" placeholder="e.g. Infrastructure">
-                                </div>
-                                <button type="submit" id="cat-add-btn" class="btn-accent w-full flex items-center justify-center gap-3">
-                                    <span>Create Category</span>
-                                </button>
-                            </form>
+                            <button type="button" id="cancel-edit-btn" class="hidden flex-1 bg-white/5 hover:bg-white/10 text-white font-bold py-4 rounded-xl transition-colors h-[56px]">
+                                إلغاء
+                            </button>
                         </div>
-                    </div>
+                    </form>
+                </div>
+            </div>
 
-                    <!-- Category List -->
-                    <div class="lg:col-span-2 overflow-x-auto" style="margin-right: -1.5rem; margin-left: -1.5rem; padding: 0 1.5rem;">
-                        <div class="min-w-[400px]">
-                            <table class="saas-table">
-                                <thead>
-                                    <tr>
-                                        <th>CATEGORY NAME</th>
-                                        <th style="text-align:right">ACTIONS</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="category-tbody">
-                                    <!-- JS Inject -->
-                                </tbody>
-                            </table>
-                        </div>
+            <!-- Resources Table (Glass Card Wrapper) -->
+            <div id="resources-table" class="glass-card overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-right border-collapse">
+                        <thead>
+                            <tr class="border-b border-white/10 bg-white/5 text-slate-400 text-xs font-bold uppercase tracking-wider">
+                                <th class="px-6 py-4 rounded-tr-2xl">العنوان</th>
+                                <th class="px-6 py-4">التصنيف</th>
+                                <th class="px-6 py-4 hidden sm:table-cell">تاريخ الإضافة</th>
+                                <th class="px-6 py-4 text-left rounded-tl-2xl">الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="resources-tbody" class="divide-y divide-white/5 text-sm text-slate-300">
+                            <!-- Populated by JS -->
+                            <tr><td colspan="4" class="px-6 py-12 text-center text-slate-500">جاري تحميل البيانات...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Bug Reports View -->
+            <section id="view-bug-reports" class="hidden animate-in admin-section">
+                <div class="mb-8 flex items-center justify-between">
+                    <div>
+                        <h1 class="text-2xl md:text-3xl font-black text-white leading-none flex items-center gap-3">
+                            بلاغات المستخدمين
+                            <span class="bg-red-500/20 text-red-400 text-[10px] px-2 py-0.5 rounded-full uppercase tracking-widest hidden" id="bug-alert-badge">بلاغات حية</span>
+                        </h1>
+                        <p class="text-slate-400 mt-2 text-sm">مراجعة ومعالجة التقارير المرسلة من قبل المستخدمين.</p>
                     </div>
                 </div>
-            </section>
-
-            <!-- Bug Reports Section -->
-            <section id="bugs-section" class="hidden">
-                <header class="flex justify-between items-end mb-12">
-                    <div>
-                        <h1 class="text-3xl font-black text-[var(--text-pure)] mb-2">Field Reports.</h1>
-                        <p class="text-sm text-[var(--text-muted)] font-medium">Review and resolve incoming site telemetry and user issues.</p>
-                    </div>
-                    <div class="flex items-center gap-4">
-                        <span id="bug-count-badge" class="bg-red-500/10 text-red-400 text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-full border border-red-500/20">0 Reports</span>
-                    </div>
-                </header>
-
-                <div class="glass-card-saas !p-0">
-                    <div id="bugs-container" class="divide-y divide-white/5">
-                        <!-- JS Inject: Bug Cards -->
+                <!-- Bug Reports Container -->
+                <div id="bug-reports-container" class="space-y-4">
+                    <!-- Cards Populated by JS -->
+                    <div class="glass-card p-10 text-center text-slate-500">
+                        <svg class="w-8 h-8 mx-auto mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        جاري جمع التقارير...
                     </div>
                 </div>
             </section>

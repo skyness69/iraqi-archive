@@ -49,13 +49,13 @@ let mode = 'login'; // 'login', 'signup', 'reset', or 'verify'
 
 // --- ERROR MAPPING ---
 const errorMessages = {
-    'auth/user-not-found': 'No account found with this email.',
-    'auth/wrong-password': 'Incorrect password. Please try again.',
-    'auth/invalid-email': 'Please enter a valid email address.',
-    'auth/email-already-in-use': 'This email is already registered.',
-    'auth/invalid-credential': 'Invalid email or password. Please check your credentials.',
-    'auth/weak-password': 'Password should be at least 6 characters.',
-    'auth/too-many-requests': 'Too many failed attempts. Please try again later.'
+    'auth/user-not-found': 'لم يتم العثور على حساب بهذا البريد.',
+    'auth/wrong-password': 'كلمة المرور غير صحيحة. يرجى المحاولة مرة أخرى.',
+    'auth/invalid-email': 'يرجى إدخال بريد إلكتروني صحيح.',
+    'auth/email-already-in-use': 'هذا البريد الإلكتروني مسجل مسبقاً.',
+    'auth/invalid-credential': 'البريد الإلكتروني أو كلمة المرور غير صحيحة. يرجى التأكد من البيانات.',
+    'auth/weak-password': 'يجب أن لا تقل كلمة المرور عن 6 أحرف.',
+    'auth/too-many-requests': 'محاولات دخول كثيرة فاشلة. يرجى المحاولة مرة أخرى لاحقاً.'
 };
 
 // --- AUTH STATE OBSERVER ---
@@ -101,10 +101,12 @@ refreshVerifyBtn?.addEventListener('click', async () => {
         if (user.emailVerified) {
             // Force refresh the ID token so security rules recognize the verified status
             await user.getIdToken(true);
-            showToast('Identity Activated!', 'success');
-            window.location.href = 'index.html';
+            showToast('تم تفعيل الهوية بنجاح!', 'success');
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 500);
         } else {
-            showToast('Verification not detected yet.', 'error');
+            showToast('لم يتم التحقق من الهوية بعد.', 'error');
         }
     }
 });
@@ -114,7 +116,7 @@ resendVerifyBtn?.addEventListener('click', async () => {
     if (user) {
         try {
             await sendEmailVerification(user);
-            showToast('Verification Sent. Check your inbox.', 'success');
+            showToast('تم الإرسال. تحقق من صندوق الوارد.', 'success');
         } catch (err) {
             showToast(err.message, 'error');
         }
@@ -134,27 +136,27 @@ function switchView(newMode) {
     if (mode === 'reset') {
         resetView.classList.remove('hidden');
         toggleArea.classList.add('hidden');
-        authTitle.textContent = 'Reset Password';
-        authSubtitle.textContent = 'Enter your email to receive a recovery link.';
+        authTitle.textContent = 'استعادة كلمة المرور';
+        authSubtitle.textContent = 'أدخل بريدك الإلكتروني لاستلام رابط الاستعادة.';
     } else if (mode === 'verify') {
         verifyView.classList.remove('hidden');
         toggleArea.classList.add('hidden');
-        authTitle.textContent = 'Active Check Required';
-        authSubtitle.textContent = 'Your identity is pending cryptographic confirmation.';
+        authTitle.textContent = 'مطلوب التحقق النشط';
+        authSubtitle.textContent = 'هويتك في انتظار التأكيد والموافقة.';
     } else {
         authForm.classList.remove('hidden');
         if (mode === 'signup') {
-            authTitle.textContent = 'Create Account';
-            authSubtitle.textContent = 'Join the Iraqi Archive to save your findings.';
-            btnText.textContent = 'Sign Up';
-            togglePrompt.textContent = 'Already have an account?';
-            toggleBtn.textContent = 'Log In';
+            authTitle.textContent = 'إنشاء حساب جديد';
+            authSubtitle.textContent = 'انضم إلى الأرشيف العراقي لحفظ مواردك.';
+            btnText.textContent = 'اشتراك';
+            togglePrompt.textContent = 'هل لديك حساب بالفعل؟';
+            toggleBtn.textContent = 'تسجيل الدخول';
         } else {
-            authTitle.textContent = 'Welcome Back';
-            authSubtitle.textContent = 'Please enter your details to sign in.';
-            btnText.textContent = 'Log In';
-            togglePrompt.textContent = "Don't have an account?";
-            toggleBtn.textContent = 'Sign Up';
+            authTitle.textContent = 'مرحباً بعودتك';
+            authSubtitle.textContent = 'يرجى إدخال بياناتك للدخول.';
+            btnText.textContent = 'دخول';
+            togglePrompt.textContent = "مستخدم جديد للأرشيف؟";
+            toggleBtn.textContent = 'تسجيل جديد';
         }
     }
 }
@@ -174,12 +176,12 @@ authForm?.addEventListener('submit', async (e) => {
             if (!result.user.emailVerified) {
                 switchView('verify');
             } else {
-                showToast('Welcome back!', 'success');
+                showToast('مرحباً بك مجدداً!', 'success');
             }
         } else {
             const result = await createUserWithEmailAndPassword(auth, email, password);
             await sendEmailVerification(result.user);
-            showToast('Account created! Verify your email.', 'success');
+            showToast('تم إنشاء الحساب! الرجاء التحقق من بريدك.', 'success');
             switchView('verify');
         }
     } catch (error) {
@@ -189,16 +191,16 @@ authForm?.addEventListener('submit', async (e) => {
                 const result = await signInWithEmailAndPassword(auth, email, password);
                 if (!result.user.emailVerified) {
                     await sendEmailVerification(result.user);
-                    showToast('Account recovered! A new link has been sent.', 'success');
+                    showToast('تم استعادة الحساب! تم إرسال رابط جديد.', 'success');
                     switchView('verify');
                 } else {
                     await user.getIdToken(true);
-                    showToast('Account already exists. Welcome back!', 'success');
+                    showToast('الحساب موجود مسبقاً. مرحباً بعودتك!', 'success');
                     window.location.href = 'index.html';
                 }
             } catch (recoveryErr) {
                 // If login fails, the password was wrong for the existing account
-                showError('This email is already registered. Please Log In or reset your password.');
+                showError('هذا البريد مسجل مسبقاً. الرجاء تسجيل الدخول أو استعادة كلمة المرور.');
             }
         } else {
             showError(errorMessages[error.code] || error.message);
@@ -210,15 +212,15 @@ authForm?.addEventListener('submit', async (e) => {
 // --- PASSWORD RESET SUBMISSION ---
 sendResetBtn?.addEventListener('click', async () => {
     const email = resetEmailInput.value.trim();
-    if (!email) return showError('Please enter your email.');
+    if (!email) return showError('يرجى إدخال البريد الإلكتروني الخاص بك.');
 
     setLoading(sendResetBtn, resetBtnText, resetBtnSpinner, true);
     hideAllMessages();
 
     try {
         await sendPasswordResetEmail(auth, email);
-        showSuccess('Reset link sent! Please check your inbox.');
-        showToast('Password reset email sent.', 'success');
+        showSuccess('تم إرسال رابط الاستعادة! الرجاء تفقد البريد.');
+        showToast('تم التوجيه للبريد.', 'success');
         setTimeout(() => switchView('login'), 3000);
     } catch (error) {
         showError(errorMessages[error.code] || error.message);

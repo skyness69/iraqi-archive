@@ -74,16 +74,16 @@
 
         /* --- MOBILE RESPONSIVENESS --- */
         @media (max-width: 1024px) {
-            .sidebar {
-                transform: translateX(100%); /* Changed from translateX(-100%) */
-                box-shadow: -20px 0 50px rgba(0,0,0,0.5); /* Adjusted shadow for RTL */
+            .sidebar-admin {
+                transform: translateX(100%);
+                box-shadow: -20px 0 50px rgba(0,0,0,0.5);
                 transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
             }
-            .sidebar.active {
-                transform: translateX(0);
+            .sidebar-admin.active {
+                transform: translateX(0) !important;
             }
             .main-content {
-                margin-right: 0; /* Changed from margin-left */
+                margin-right: 0;
                 padding: 2rem 1.5rem;
             }
             .mobile-header {
@@ -123,18 +123,13 @@
         }
         .sidebar-overlay.active { display: block; }
 
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.5rem;
-        }
-
-        .glass-card-saas {
+        .glass-card {
             background: var(--glass-card);
             border: 0.5px solid var(--glass-border);
             border-radius: 2rem;
             padding: 2.5rem;
             backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
         }
 
         /* --- FORM STYLING --- */
@@ -226,17 +221,11 @@
         }
         @keyframes fadeInModal { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
 
-        /* New RTL specific styles */
-        @media (max-width: 1024px) {
-            transition: right 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            z-index: 50;
+        /* Sidebar Admin Logic */
+        .sidebar-admin {
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
-
-        .main-content {
-            margin-right: 0;
-            transition: margin-right 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
+        
         @media (min-width: 1024px) {
             .sidebar-admin {
                 transform: translateX(0) !important;
@@ -341,16 +330,7 @@
     <!-- Main Content Area -->
     <main class="main-content min-h-screen">
         
-        <!-- Top Header for Mobile -->
-        <header class="lg:hidden bg-[#0c0a15]/80 backdrop-blur-md border-b border-white/5 sticky top-0 z-40 px-4 py-4 flex items-center justify-between">
-            <div class="flex items-center space-x-3 rtl:space-x-reverse cursor-pointer group">
-                <div class="w-8 h-8 rounded-lg bg-[var(--accent-primary)]/10 border border-[var(--accent-primary)]/20 flex items-center justify-center font-black text-xs text-[var(--accent-primary)]">IA</div>
-                <span class="font-bold text-sm tracking-tight text-white">مدير الخزنة</span>
-            </div>
-            <button id="mobile-menu-btn" class="text-slate-400 hover:text-white p-2">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-            </button>
-        </header>
+
 
             <!-- Dashboard View -->
             <section id="view-dashboard" class="animate-in admin-section">

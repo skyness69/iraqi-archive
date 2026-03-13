@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeSidebarBtn = document.getElementById('close-sidebar-btn');
 
     const toggleSidebar = () => {
-        adminSidebar?.classList.toggle('translate-x-full');
+        adminSidebar?.classList.toggle('active');
         sidebarOverlay?.classList.toggle('active');
     };
 

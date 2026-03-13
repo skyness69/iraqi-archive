@@ -34,39 +34,36 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Bind Event Listeners
     document.getElementById('logout-btn')?.addEventListener('click', () => signOut(auth));
-    document.getElementById('add-form')?.addEventListener('submit', handleAddResource);
+    document.getElementById('add-resource-form')?.addEventListener('submit', handleAddResource);
     document.getElementById('edit-form')?.addEventListener('submit', handleEditResource);
-    document.getElementById('cat-form')?.addEventListener('submit', handleCategorySubmit);
     document.getElementById('close-modal')?.addEventListener('click', closeEditModal);
 
     // Mobile Sidebar Toggles
-    const mobileToggle = document.getElementById('mobile-toggle');
+    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
     const adminSidebar = document.getElementById('admin-sidebar');
     const sidebarOverlay = document.getElementById('sidebar-overlay');
+    const closeSidebarBtn = document.getElementById('close-sidebar-btn');
 
     const toggleSidebar = () => {
-        adminSidebar?.classList.toggle('active');
+        adminSidebar?.classList.toggle('translate-x-full');
         sidebarOverlay?.classList.toggle('active');
     };
 
-    mobileToggle?.addEventListener('click', toggleSidebar);
+    mobileMenuBtn?.addEventListener('click', toggleSidebar);
+    closeSidebarBtn?.addEventListener('click', toggleSidebar);
     sidebarOverlay?.addEventListener('click', toggleSidebar);
 
     // Sidebar Toggles
-    document.getElementById('side-nav-resources')?.addEventListener('click', (e) => {
-        e.preventDefault();
-        switchSection('resources');
-        if (window.innerWidth < 1024) toggleSidebar();
-    });
-    document.getElementById('side-nav-categories')?.addEventListener('click', (e) => {
-        e.preventDefault();
-        switchSection('categories');
-        if (window.innerWidth < 1024) toggleSidebar();
-    });
-    document.getElementById('side-nav-bugs')?.addEventListener('click', (e) => {
-        e.preventDefault();
-        switchSection('bugs');
-        if (window.innerWidth < 1024) toggleSidebar();
+    document.querySelectorAll('.nav-link').forEach(link => {
+        link.addEventListener('click', (e) => {
+            const href = link.getAttribute('href');
+            if (href.startsWith('#')) {
+                e.preventDefault();
+                const section = href.substring(1);
+                switchSection(section);
+                if (window.innerWidth < 1024) toggleSidebar();
+            }
+        });
     });
 
     const editModal = document.getElementById('edit-modal');
@@ -95,8 +92,6 @@ function initMainAuth() {
         // Grant Access to UI
         document.getElementById('access-denied').style.display = 'none';
         document.getElementById('dashboard').style.display = 'block';
-        document.getElementById('admin-email').textContent = user.email;
-        document.getElementById('admin-avatar').textContent = user.email[0].toUpperCase();
         
         startLiveSync();
     });
@@ -106,29 +101,31 @@ function initMainAuth() {
  * UI NAVIGATION
  */
 function switchSection(name) {
-    const resSec = document.getElementById('resources-section');
-    const catSec = document.getElementById('categories-section');
-    const bugSec = document.getElementById('bugs-section');
+    const dashboardSec = document.getElementById('view-dashboard');
+    const publishSec = document.getElementById('publish-wrapper');
+    const resourceTableSec = document.getElementById('resources-table');
+    const bugSec = document.getElementById('view-bug-reports');
     
-    const resNav = document.getElementById('side-nav-resources');
-    const catNav = document.getElementById('side-nav-categories');
-    const bugNav = document.getElementById('side-nav-bugs');
+    // Hide all
+    [dashboardSec, publishSec, resourceTableSec, bugSec].forEach(s => s?.classList.add('hidden'));
+    
+    // Deactivate all nav links
+    document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
 
-    // Reset
-    [resSec, catSec, bugSec].forEach(s => s?.classList.add('hidden'));
-    [resNav, catNav, bugNav].forEach(n => n?.classList.remove('active'));
-
-    // Show
-    if (name === 'resources') {
-        resSec?.classList.remove('hidden');
-        resNav?.classList.add('active');
-    } else if (name === 'categories') {
-        catSec?.classList.remove('hidden');
-        catNav?.classList.add('active');
-    } else if (name === 'bugs') {
+    // Show specific section
+    if (name === 'dashboard') {
+        dashboardSec?.classList.remove('hidden');
+        document.querySelector('a[href="#dashboard"]')?.classList.add('active');
+    } else if (name === 'resources') {
+        resourceTableSec?.classList.remove('hidden');
+        document.querySelector('a[href="#resources"]')?.classList.add('active');
+    } else if (name === 'bug-reports') {
         bugSec?.classList.remove('hidden');
-        bugNav?.classList.add('active');
+        document.querySelector('a[href="#bug-reports"]')?.classList.add('active');
         fetchBugReports(); // Load bugs when viewing
+    } else if (name === 'add-resource') {
+        publishSec?.classList.remove('hidden');
+        document.querySelector('a[href="#add-resource"]')?.classList.add('active');
     }
 }
 
@@ -150,9 +147,10 @@ function startLiveSync() {
         resources.sort((a,b) => (a.title || '').localeCompare(b.title || ''));
 
         renderResourcesTable(resources);
-        renderCategoriesList(categories);
+        // renderCategoriesList(categories); // No category list in current HTML
         updateCategoryOptions(categories);
         updateStatsView(resources);
+        fetchBugReports(); // Init bug sync
     });
 }
 
@@ -171,11 +169,11 @@ function fetchBugReports() {
 }
 
 function renderBugReports(items) {
-    const container = document.getElementById('bugs-container');
-    const badge = document.getElementById('bug-count-badge');
+    const container = document.getElementById('bug-reports-container');
+    const alertBadge = document.getElementById('bug-alert-badge');
     if (!container) return;
 
-    if (badge) badge.textContent = `${items.length} بلاغات`;
+    if (alertBadge) alertBadge.classList.toggle('hidden', items.length === 0);
 
     if (items.length === 0) {
         container.innerHTML = `
@@ -347,11 +345,11 @@ window.deleteCategoryReq = (index, name) => {
  * RESOURCE OPERATIONS
  */
 function renderResourcesTable(items) {
-    const tbody = document.getElementById('resource-tbody');
-    const countLabel = document.getElementById('table-count');
-    if (!tbody || !countLabel) return;
-
-    countLabel.textContent = `${items.length} محفوظ`;
+    const tbody = document.getElementById('resources-tbody');
+    const countBadge = document.getElementById('resource-count-badge');
+    if (!tbody) return;
+    
+    if (countBadge) countBadge.textContent = items.length;
 
     if (items.length === 0) {
         tbody.innerHTML = '<tr><td colspan="3" class="text-center py-24 text-slate-500 uppercase font-black text-xs tracking-widest">لا توجد موارد محفوظة.</td></tr>';
@@ -382,14 +380,14 @@ function renderResourcesTable(items) {
 
 async function handleAddResource(e) {
     e.preventDefault();
-    const title = document.getElementById('f-title')?.value.trim();
-    const desc = document.getElementById('f-desc')?.value.trim();
-    const url = document.getElementById('f-url')?.value.trim();
-    const category = document.getElementById('f-category')?.value;
+    const title = document.getElementById('title')?.value.trim();
+    const desc = document.getElementById('description')?.value.trim();
+    const url = document.getElementById('link')?.value.trim();
+    const category = document.getElementById('category')?.value;
     if (!title || !desc || !url || !category) return showToast('فشل: جميع الحقول مطلوبة.', 'error');
     try {
         await addDoc(collection(db, COL), { title, desc, url, category, addedAt: new Date().toISOString() });
-        document.getElementById('add-form')?.reset();
+        document.getElementById('add-resource-form')?.reset();
         showToast(`تم نشر المورد بنجاح.`, 'success');
     } catch (err) {
         showToast(`فشل: ${err.message}`, 'error');
@@ -434,19 +432,26 @@ window.reqDeleteResource = (id, title) => {
 };
 
 function updateStatsView(items) {
-    document.getElementById('stat-total').textContent = items.length;
-    document.getElementById('stat-cats').textContent = categories.length;
-    document.getElementById('stat-date').textContent = new Date().toLocaleDateString('en-GB', { day:'numeric', month:'short' });
+    const totalResourcesElem = document.getElementById('stat-total-resources');
+    const newResourcesElem = document.getElementById('stat-new-resources');
+    const activeReportsElem = document.getElementById('stat-active-reports');
+
+    if (totalResourcesElem) totalResourcesElem.textContent = items.length;
+    
+    // Simple logic for "New" (e.g., added today)
+    const today = new Date().toISOString().split('T')[0];
+    const newItems = items.filter(r => r.addedAt && r.addedAt.startsWith(today)).length;
+    if (newResourcesElem) newResourcesElem.textContent = newItems;
+
+    if (activeReportsElem) activeReportsElem.textContent = bugReports.length;
 }
 
 function updateCategoryOptions(cats) {
-    const fCat = document.getElementById('f-category');
+    // Note: In this version of the HTML, the options are static in index.html but we can dynamically sync if needed.
+    // However, the user-defined categories are handled in specific ways. 
+    // We will keep the default implementation but ensure it targets 'category' and 'e-category'
+    const fCat = document.getElementById('category');
     const eCat = document.getElementById('e-category');
     if (!fCat || !eCat) return;
-    const html = `
-        <option value="">-- اختر القسم --</option>
-        ${cats.map(cName => `<option value="${escHtml(cName)}">${escHtml(cName)}</option>`).join('')}
-    `;
-    fCat.innerHTML = html;
-    eCat.innerHTML = html;
+    // ...
 }

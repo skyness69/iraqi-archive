@@ -414,8 +414,7 @@ function cardTemplate(item) {
             <button onclick="event.stopPropagation(); handleSave('${item.id}')"
                     id="save-btn-${item.id}"
                     title="${isSaved ? 'إزالة من المفضلة' : 'إضافة للمفضلة'}"
-                    class="heart-btn-saas ${isSaved ? 'saved' : ''}"
-                    style="position: relative; top: 0; right: 0; margin-left: auto;">
+                    class="heart-btn-saas ${isSaved ? 'saved' : ''}">
                 <svg fill="${isSaved ? 'white' : 'none'}" stroke="${isSaved ? 'white' : 'var(--text-muted)'}"
                      stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round"
@@ -430,8 +429,8 @@ function cardTemplate(item) {
         <p class="card-desc" dir="${textDir}">${desc}</p>
         <!-- Footer -->
         <div class="card-footer">
-            <span class="badge-saas">${item.category || 'أخرى'}</span>
             <a href="${item.url || '#'}" target="_blank" rel="noopener noreferrer" class="card-link" onclick="event.stopPropagation()">زيارة ←</a>
+            <span class="badge-saas">${item.category || 'أخرى'}</span>
         </div>
     </div>`;
 }

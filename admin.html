@@ -30,12 +30,15 @@
         }
 
         .logo-box {
-            width: 44px; height: 44px;
-            background: var(--glass-card);
-            border: 0.5px solid var(--glass-border);
-            border-radius: 14px;
+            width: 38px; height: 38px;
+            background: var(--accent-primary);
+            border-radius: 11px;
             display: flex; align-items: center; justify-content: center;
-            font-weight: 900; color: var(--accent-crimson);
+            font-weight: 800; font-size: 13px;
+            color: white;
+            flex-shrink: 0;
+            text-transform: uppercase;
+            letter-spacing: -0.02em;
         }
 
         .sidebar-nav-saas a {
@@ -237,7 +240,7 @@
         <!-- Mobile Header -->
         <header class="mobile-header">
             <div class="flex items-center gap-3">
-                <div class="logo-box" style="width: 32px; height: 32px; font-size: 12px;">IA</div>
+                <div class="logo-box">IA</div>
                 <span class="text-sm font-black uppercase tracking-widest text-white">Admin Panel</span>
             </div>
             <div class="hamburger" id="mobile-toggle">

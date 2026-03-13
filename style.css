@@ -1,10 +1,15 @@
 @import 'color.css';
 
 /* --- RESET & BASE --- */
-* {
+*, *::before, *::after {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+}
+
+html {
+    overflow-x: hidden;
+    max-width: 100%;
 }
 
 body {
@@ -15,6 +20,8 @@ body {
     font-family: 'Inter', sans-serif;
     line-height: 1.6;
     overflow-x: hidden;
+    max-width: 100%;
+    width: 100%;
 }
 
 /* --- ARABIC TEXT SUPPORT --- */

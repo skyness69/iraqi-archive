@@ -194,6 +194,10 @@
                     <svg style="width:18px;height:18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h10a2 2 0 012 2v14a2 2 0 01-2 2H7a2 2 0 01-2-2V5a2 2 0 012-2z"/></svg>
                     Categories
                 </a>
+                <a href="#" id="side-nav-bugs">
+                    <svg style="width:18px;height:18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                    Bug Reports
+                </a>
             </nav>
 
             <div style="margin-top:auto; padding-top:2rem; border-top:0.5px solid var(--glass-border);">
@@ -331,6 +335,32 @@
                         </table>
                     </div>
                 </div>
+                </div>
+            </section>
+
+            <!-- Bug Reports Section -->
+            <section id="bugs-section" class="hidden">
+                <header class="flex justify-between items-end mb-12">
+                    <div>
+                        <h1 class="text-3xl font-black text-[var(--text-pure)] mb-2">Bug Infiltrations.</h1>
+                        <p class="text-sm text-[var(--text-muted)] font-medium">Review field reports and user-submitted discrepancies.</p>
+                    </div>
+                </header>
+
+                <div class="glass-card-saas !p-0 overflow-hidden">
+                    <table class="saas-table !my-0" style="border-collapse: collapse; border-spacing: 0;">
+                        <thead class="bg-white/5">
+                            <tr>
+                                <th class="py-6 pl-8">REPORTER</th>
+                                <th>LOG DATA</th>
+                                <th style="text-align:right" class="pr-8">ACTIONS</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bugs-tbody">
+                            <!-- JS Inject -->
+                        </tbody>
+                    </table>
+                </div>
             </section>
             </div>
         </main>
@@ -379,7 +409,7 @@
 
     <!-- Firebase System -->
     <div id="toast-container"></div>
-    <script type="module" src="admin.js?v=1.4"></script>
+    <script type="module" src="admin.js?v=1.5"></script>
 </body>
 </html>
 

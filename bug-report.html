@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bug Report | Iraqi Archive</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css?v=4.0">
+    <style>
+        body { background: var(--bg-deep); color: var(--text-dim); }
+        .glass-card-report {
+            background: var(--glass-card);
+            border: 0.5px solid var(--glass-border);
+            border-radius: 2rem;
+            padding: 3rem;
+            backdrop-filter: blur(25px);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+        .form-input-saas {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.03);
+            border: 0.5px solid var(--glass-border);
+            border-radius: 14px;
+            padding: 14px 18px;
+            color: var(--text-pure);
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            margin-top: 10px;
+        }
+        .form-input-saas:focus {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 20px rgba(124, 58, 237, 0.2);
+            background: rgba(255, 255, 255, 0.05);
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-purple-500/30">
+
+    <nav class="nav-saas">
+        <div class="container-saas flex justify-between items-center">
+            <a href="index.html" class="flex items-center gap-3 group">
+                <div class="logo-box">IA</div>
+                <span class="logo-text">Iraqi Archive</span>
+            </a>
+            <div class="hidden md:flex items-center gap-8">
+                <a href="index.html" class="nav-link">Back to Archives</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container-saas pt-32 pb-24 flex justify-center">
+        <div class="w-full max-w-xl">
+            <div class="text-center mb-10">
+                <h1 class="text-4xl font-black text-white mb-4 tracking-tight">Report a Issue.</h1>
+                <p class="text-slate-400 font-medium">Spotted a bug or have a suggestion? Let us know below.</p>
+            </div>
+
+            <div class="glass-card-report">
+                <form id="bug-form" class="space-y-6">
+                    <div>
+                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Your Identifier (Name/Email)</label>
+                        <input type="text" id="b-user" class="form-input-saas" placeholder="e.g. Anon-User-25" required>
+                    </div>
+                    
+                    <div>
+                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Issue Subject</label>
+                        <input type="text" id="b-subject" class="form-input-saas" placeholder="e.g. Login page is broken" required>
+                    </div>
+
+                    <div>
+                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Archive Coordinates (URL/Page)</label>
+                        <input type="text" id="b-location" class="form-input-saas" placeholder="e.g. Home Page / Vault" required>
+                    </div>
+
+                    <div>
+                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Detailed Log</label>
+                        <textarea id="b-message" class="form-input-saas h-32 resize-none" placeholder="Explain what happened..." required></textarea>
+                    </div>
+
+                    <button type="submit" id="submit-btn" class="btn-accent w-full py-4 flex items-center justify-center gap-3">
+                        <span id="btn-text">Transmit Transmission</span>
+                        <div id="spinner" class="spinner" style="width:16px;height:16px;display:none;"></div>
+                    </button>
+                </form>
+
+                <div id="success-view" class="hidden text-center py-10">
+                    <div class="w-16 h-16 bg-green-500/10 border border-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <svg class="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-black text-white mb-2">Transmission Received.</h3>
+                    <p class="text-slate-400 text-sm mb-8">Your report has been logged in the vault archives. The admin will review it shortly.</p>
+                    <a href="index.html" class="btn-accent !bg-white !text-black py-3 px-8 text-xs">Return to Explorer</a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="toast-container"></div>
+
+    <script type="module">
+        import { db, collection, addDoc } from './firebase-config.js';
+        import { showToast } from './utils.js';
+
+        const form = document.getElementById('bug-form');
+        const successView = document.getElementById('success-view');
+        const btnText = document.getElementById('btn-text');
+        const spinner = document.getElementById('spinner');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const user = document.getElementById('b-user').value.trim();
+            const subject = document.getElementById('b-subject').value.trim();
+            const location = document.getElementById('b-location').value.trim();
+            const message = document.getElementById('b-message').value.trim();
+
+            if (!user || !subject || !message) return showToast('All required fields must be filled.', 'error');
+
+            btnText.textContent = 'Transmitting...';
+            spinner.style.display = 'block';
+            form.querySelector('button').disabled = true;
+
+            try {
+                // Save to Firestore
+                await addDoc(collection(db, 'bug_reports'), {
+                    user,
+                    subject,
+                    location,
+                    message,
+                    createdAt: new Date().toISOString(),
+                    status: 'unread'
+                });
+
+                // Success
+                form.classList.add('hidden');
+                successView.classList.remove('hidden');
+                showToast('Report Logged Successfully.', 'success');
+
+                // Optional: For "Send to admin's email" part, we can trigger a mailto as well
+                // but the user didn't ask for it to be an automatic redirect, just "sent to admin's email".
+                // Since we don't have a backend, saving to Firestore and letting admin read it is best.
+                // However, I can add a button on the success page if they WANT to send it manually too.
+
+            } catch (err) {
+                console.error("Bug Report Error:", err);
+                showToast('Transmission Interrupted: ' + err.message, 'error');
+            } finally {
+                btnText.textContent = 'Transmit Transmission';
+                spinner.style.display = 'none';
+                form.querySelector('button').disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

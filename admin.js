@@ -1,27 +1,29 @@
 /**
  * admin.js — Iraqi Archive Admin Dashboard
  * RESTRICTED: Only accessible by alaidan25@gmail.com
- * NOTE: CATEGORIES ARE NOW STORED AS A SPECIAL METADATA DOCUMENT IN 'resources' PROXIED FOR PERMISSION STABILITY.
  */
 
 import {
     auth, db, ADMIN_EMAIL,
     onAuthStateChanged, signOut,
     collection, addDoc, deleteDoc, updateDoc, onSnapshot,
-    doc, setDoc, getDoc
+    doc, setDoc
 } from './firebase-config.js';
 
 import { showToast, escHtml, escQ, shortUrl } from './utils.js';
 
 // Global Vars
 const COL      = 'resources';
-const CAT_DOC_ID = '--categories-metadata--'; // Special ID in the resources collection
+const CAT_DOC_ID = '--categories-metadata--';
+const BUG_COL  = 'bug_reports';
 
 // State
 let categories = [];
 let resources = [];
+let bugReports = [];
 let editingCatId = null;
 let unsubSync = null;
+let unsubBugs = null;
 
 /**
  * START PORTAL
@@ -45,6 +47,10 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('side-nav-categories')?.addEventListener('click', (e) => {
         e.preventDefault();
         switchSection('categories');
+    });
+    document.getElementById('side-nav-bugs')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        switchSection('bugs');
     });
 
     const editModal = document.getElementById('edit-modal');
@@ -86,57 +92,113 @@ function initMainAuth() {
 function switchSection(name) {
     const resSec = document.getElementById('resources-section');
     const catSec = document.getElementById('categories-section');
+    const bugSec = document.getElementById('bugs-section');
+    
     const resNav = document.getElementById('side-nav-resources');
     const catNav = document.getElementById('side-nav-categories');
+    const bugNav = document.getElementById('side-nav-bugs');
 
+    // Reset
+    [resSec, catSec, bugSec].forEach(s => s?.classList.add('hidden'));
+    [resNav, catNav, bugNav].forEach(n => n?.classList.remove('active'));
+
+    // Show
     if (name === 'resources') {
         resSec?.classList.remove('hidden');
-        catSec?.classList.add('hidden');
         resNav?.classList.add('active');
-        catNav?.classList.remove('active');
-    } else {
-        resSec?.classList.add('hidden');
+    } else if (name === 'categories') {
         catSec?.classList.remove('hidden');
-        resNav?.classList.remove('active');
         catNav?.classList.add('active');
+    } else if (name === 'bugs') {
+        bugSec?.classList.remove('hidden');
+        bugNav?.classList.add('active');
+        fetchBugReports(); // Load bugs when viewing
     }
 }
 
 /**
- * DATA SYNC (Single Collection Strategy)
+ * DATA SYNC
  */
 function startLiveSync() {
-    console.log("IA ADMIN: Synchronizing archives...");
     if (unsubSync) unsubSync();
 
-    // Listen to the ENTIRE resources collection
     unsubSync = onSnapshot(collection(db, COL), (snap) => {
         let allItems = [];
         snap.forEach(d => allItems.push({ id: d.id, ...d.data() }));
 
-        // 1. Extract Categories from the special metadata doc
         const catDoc = allItems.find(i => i.id === CAT_DOC_ID);
         categories = catDoc && catDoc.list ? catDoc.list : [];
         categories.sort((a,b) => a.localeCompare(b));
 
-        // 2. Extract Resources (exclude the metadata doc)
         resources = allItems.filter(i => i.id !== CAT_DOC_ID);
         resources.sort((a,b) => (a.title || '').localeCompare(b.title || ''));
 
-        // 3. Render
         renderResourcesTable(resources);
         renderCategoriesList(categories);
         updateCategoryOptions(categories);
         updateStatsView(resources);
-        
-    }, err => {
-        console.error("Sync Error:", err);
-        showToast('Database Access Restricted: Check Firebase Rules.', 'error');
     });
 }
 
 /**
- * CATEGORY OPERATIONS (Internal List Strategy)
+ * BUG REPORTS LOGIC
+ */
+function fetchBugReports() {
+    if (unsubBugs) unsubBugs();
+    
+    unsubBugs = onSnapshot(collection(db, BUG_COL), (snap) => {
+        bugReports = [];
+        snap.forEach(d => bugReports.push({ id: d.id, ...d.data() }));
+        bugReports.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        renderBugReports(bugReports);
+    }, err => showToast("Bug Sync Failed: " + err.message, "error"));
+}
+
+function renderBugReports(items) {
+    const tbody = document.getElementById('bugs-tbody');
+    if (!tbody) return;
+
+    if (items.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3" class="py-20 text-center text-slate-500 font-bold uppercase text-[10px]">No bug reports detected in the stream.</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = items.map(b => `
+        <tr class="group hover:bg-white/5 border-b border-white/5 transition-colors">
+            <td class="py-6 pl-8">
+                <div class="flex flex-col">
+                    <span class="text-white font-black text-sm">${escHtml(b.user || 'Anon')}</span>
+                    <span class="text-[9px] text-slate-500 font-bold uppercase mt-1">${new Date(b.createdAt).toLocaleDateString()}</span>
+                </div>
+            </td>
+            <td class="py-6">
+                <div class="flex flex-col max-w-lg">
+                    <span class="text-red-400 font-black text-sm">${escHtml(b.subject)}</span>
+                    <span class="text-xs text-slate-400 mt-2 leading-relaxed">${escHtml(b.message)}</span>
+                    <span class="text-[9px] bg-slate-900 border border-white/5 px-2 py-0.5 rounded italic text-slate-500 mt-3 w-fit">Loc: ${escHtml(b.location || 'Unknown')}</span>
+                </div>
+            </td>
+            <td class="py-6 pr-8 text-right">
+                <div class="flex justify-end gap-2">
+                    <a href="mailto:${ADMIN_EMAIL}?subject=Re: ${escQ(b.subject)}&body=User ${escQ(b.user)} reported: %0D%0A%0D%0A${escQ(b.message)}" 
+                       class="btn-accent !py-2 !px-4 !text-[9px] !rounded-lg !bg-white !text-black hover:!bg-red-500 hover:!text-white">EMAIL REPLY</a>
+                    <button onclick="deleteBugReq('${b.id}')" class="!py-2 !px-4 !text-[9px] !rounded-lg border border-red-500/20 bg-red-500/5 text-red-400 font-bold hover:bg-red-500 hover:text-white transition-all">RESOLVE</button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+}
+
+window.deleteBugReq = (id) => {
+    if (confirm("Resolve and purge this report?")) {
+        deleteDoc(doc(db, BUG_COL, id))
+            .then(() => showToast("Report Resolved.", "success"))
+            .catch(err => showToast("Failed: " + err.message, "error"));
+    }
+};
+
+/**
+ * CATEGORY OPERATIONS
  */
 function renderCategoriesList(items) {
     const tbody = document.getElementById('category-tbody');
@@ -164,34 +226,22 @@ async function handleCategorySubmit(e) {
     e.preventDefault();
     const nameInput = document.getElementById('c-name');
     const newName = nameInput?.value.trim();
-
     if (!newName) return showToast('Name required.', 'error');
 
-    // Logic: Modify our local array 'categories', then push entire array to Firebase
     let updatedList = [...categories];
-
     if (editingCatId !== null) {
-        // Update existing index
-        const idx = parseInt(editingCatId);
-        updatedList[idx] = newName;
-        showToast(`Renaming Category to "${newName}"...`, 'success');
+        updatedList[parseInt(editingCatId)] = newName;
     } else {
-        // Add new
-        if (updatedList.includes(newName)) return showToast('Category already exists.', 'error');
+        if (updatedList.includes(newName)) return showToast('Duplicate.', 'error');
         updatedList.push(newName);
-        showToast(`Adding Category "${newName}"...`, 'success');
     }
 
     try {
-        // PUSH ENTIRE ARRAY TO FIRESTORE (Metadata Document)
-        // Using the 'resources' collection because we know permissions work there!
         await setDoc(doc(db, COL, CAT_DOC_ID), { list: updatedList });
-        
         nameInput.value = '';
         if (editingCatId !== null) clearEditMode();
         showToast('Vault Synchronized.', 'success');
     } catch (err) {
-        console.error("SYNCCAT ERROR:", err);
         showToast(`Sync Failed: ${err.message}`, 'error');
     }
 }
@@ -200,7 +250,6 @@ window.setEditMode = (index, name) => {
     editingCatId = index;
     const nameInput = document.getElementById('c-name');
     const btnText = document.querySelector('#cat-add-btn span');
-    
     if (nameInput) nameInput.value = name;
     if (btnText) btnText.textContent = 'Apply Rename';
     
@@ -226,7 +275,7 @@ function clearEditMode() {
 }
 
 window.deleteCategoryReq = (index, name) => {
-    if (confirm(`Remove "${name}"? Existing resources for this section will lose their tag.`)) {
+    if (confirm(`Remove "${name}"?`)) {
         let updatedList = categories.filter((_, i) => i !== parseInt(index));
         setDoc(doc(db, COL, CAT_DOC_ID), { list: updatedList })
             .then(() => showToast(`Category Purged.`, 'success'))
@@ -277,15 +326,13 @@ async function handleAddResource(e) {
     const desc = document.getElementById('f-desc')?.value.trim();
     const url = document.getElementById('f-url')?.value.trim();
     const category = document.getElementById('f-category')?.value;
-
-    if (!title || !desc || !url || !category) return showToast('All parameters required.', 'error');
-    
+    if (!title || !desc || !url || !category) return showToast('Fail: All fields required.', 'error');
     try {
         await addDoc(collection(db, COL), { title, desc, url, category, addedAt: new Date().toISOString() });
         document.getElementById('add-form')?.reset();
-        showToast(`Deployment Success: "${title}"`, 'success');
+        showToast(`Resource Deployed.`, 'success');
     } catch (err) {
-        showToast(`Deployment Failure: ${err.message}`, 'error');
+        showToast(`Fail: ${err.message}`, 'error');
     }
 }
 
@@ -309,27 +356,23 @@ async function handleEditResource(e) {
     const desc = document.getElementById('e-desc').value.trim();
     const url = document.getElementById('e-url').value.trim();
     const category = document.getElementById('e-category').value;
-
     try {
         await updateDoc(doc(db, COL, id), { title, desc, url, category });
-        showToast('Parameters Reconfigured.', 'success');
+        showToast('Resource Updated.', 'success');
         closeEditModal();
     } catch (err) {
-        showToast(`Reconfiguration Failed: ${err.message}`, 'error');
+        showToast(`Fail: ${err.message}`, 'error');
     }
 }
 
 window.reqDeleteResource = (id, title) => {
     if (confirm(`Delete "${title}"?`)) {
         deleteDoc(doc(db, COL, id))
-            .then(() => showToast(`Artifact Purged.`, 'success'))
-            .catch(err => showToast(`Purge Failure: ${err.message}`, 'error'));
+            .then(() => showToast(`Resource Deleted.`, 'success'))
+            .catch(err => showToast(`Fail: ${err.message}`, 'error'));
     }
 };
 
-/**
- * HELPER UI
- */
 function updateStatsView(items) {
     document.getElementById('stat-total').textContent = items.length;
     document.getElementById('stat-cats').textContent = new Set(items.map(r => r.category)).size;
@@ -340,7 +383,6 @@ function updateCategoryOptions(cats) {
     const fCat = document.getElementById('f-category');
     const eCat = document.getElementById('e-category');
     if (!fCat || !eCat) return;
-
     const html = `
         <option value="">-- SELECT SECTION --</option>
         ${cats.map(cName => `<option value="${escHtml(cName)}">${escHtml(cName)}</option>`).join('')}

@@ -177,7 +177,25 @@ authForm?.addEventListener('submit', async (e) => {
             switchView('verify');
         }
     } catch (error) {
-        showError(errorMessages[error.code] || error.message);
+        if (mode === 'signup' && error.code === 'auth/email-already-in-use') {
+            try {
+                // Attempt seamless recovery
+                const result = await signInWithEmailAndPassword(auth, email, password);
+                if (!result.user.emailVerified) {
+                    await sendEmailVerification(result.user);
+                    showToast('Account recovered! A new link has been sent.', 'success');
+                    switchView('verify');
+                } else {
+                    showToast('Account already exists. Welcome back!', 'success');
+                    window.location.href = 'index.html';
+                }
+            } catch (recoveryErr) {
+                // If login fails, the password was wrong for the existing account
+                showError('This email is already registered. Please Log In or reset your password.');
+            }
+        } else {
+            showError(errorMessages[error.code] || error.message);
+        }
         setLoading(submitBtn, btnText, btnSpinner, false);
     }
 });

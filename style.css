@@ -25,12 +25,22 @@ body {
     width: 100%;
 }
 
+<<<<<<< Updated upstream
 /* --- ARABIC TEXT SUPPORT (Legacy classes, generalized) --- */
 .arabic-text {
+=======
+/* --- ARABIC TEXT SUPPORT --- */
+.arabic-text {
+    font-family: 'Noto Sans Arabic', 'Inter', sans-serif;
+>>>>>>> Stashed changes
     border-color: rgba(99, 66, 255, 0.2) !important;
 }
 
 .arabic-text .card-title {
+<<<<<<< Updated upstream
+=======
+    font-family: 'Noto Sans Arabic', sans-serif;
+>>>>>>> Stashed changes
     font-weight: 700;
     font-size: 1rem;
     line-height: 1.7;
@@ -38,14 +48,24 @@ body {
 }
 
 .arabic-text .card-desc {
+<<<<<<< Updated upstream
+=======
+    font-family: 'Noto Sans Arabic', sans-serif;
+>>>>>>> Stashed changes
     line-height: 1.9;
     font-size: 0.82rem;
     color: var(--text-muted);
 }
 
+<<<<<<< Updated upstream
 .badge-saas {
     font-family: 'Inter', sans-serif;
     direction: ltr; /* Badges like "Frontend" often stay English */
+=======
+.arabic-text .badge-saas {
+    font-family: 'Inter', sans-serif;
+    direction: ltr;
+>>>>>>> Stashed changes
 }
 
 h1, h2, h3 {
@@ -86,7 +106,11 @@ h1, h2, h3 {
 /* --- SEARCH BAR --- */
 .search-input-premium {
     width: 100%;
+<<<<<<< Updated upstream
     padding: 1.25rem 3.25rem 1.25rem 1.5rem;
+=======
+    padding: 1.25rem 1.5rem 1.25rem 3.25rem;
+>>>>>>> Stashed changes
     background: var(--glass-card);
     border: 1px solid var(--glass-border);
     border-radius: 1.25rem;
@@ -95,7 +119,11 @@ h1, h2, h3 {
     transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
+<<<<<<< Updated upstream
     font-family: 'Cairo', 'Inter', sans-serif;
+=======
+    font-family: 'Inter', sans-serif;
+>>>>>>> Stashed changes
 }
 
 .search-input-premium:focus {
@@ -512,7 +540,11 @@ h1, h2, h3 {
     }
 
     .search-icon-premium { 
+<<<<<<< Updated upstream
         right: 1rem;
+=======
+        left: 1rem;
+>>>>>>> Stashed changes
         color: var(--text-muted);
     }
 

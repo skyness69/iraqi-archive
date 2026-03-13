@@ -387,7 +387,7 @@ function cardTemplate(item) {
     const arabicClass = hasArabic ? 'arabic-text' : '';
 
     return `
-    <div class="resource-card-premium group ${arabicClass}" onclick="showDetails('${item.id}')" dir="${textDir}">
+    <div class="resource-card-premium group ${arabicClass}" onclick="showDetails('${item.id}')">
         <!-- Top Row: Icon & Heart -->
         <div class="card-top-row">
             <div class="card-icon-saas">${initials}</div>
@@ -406,8 +406,8 @@ function cardTemplate(item) {
             </button>
         </div>
         <!-- Body -->
-        <h3 class="card-title">${item.title || 'Untitled'}</h3>
-        <p class="card-desc">${desc}</p>
+        <h3 class="card-title" dir="${textDir}">${item.title || 'Untitled'}</h3>
+        <p class="card-desc" dir="${textDir}">${desc}</p>
         <!-- Footer -->
         <div class="card-footer">
             <span class="badge-saas">${item.category || 'Other'}</span>
@@ -510,8 +510,15 @@ window.showDetails = (id) => {
     const iconEl = document.getElementById('modal-icon');
 
     if (modal && titleEl && descEl && badgeEl && linkEl && iconEl) {
+        const hasArabic = isArabic(item.title || '') || isArabic(item.desc || '');
+        const textDir = hasArabic ? 'rtl' : 'ltr';
+
         titleEl.textContent = item.title || 'Untitled';
+        titleEl.dir = textDir;
+        
         descEl.textContent = item.desc || 'No description available.';
+        descEl.dir = textDir;
+        
         badgeEl.textContent = item.category || 'Other';
         linkEl.href = item.url || '#';
         iconEl.textContent = (item.title || '?')[0].toUpperCase();

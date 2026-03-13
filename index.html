@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iraqi Archive | Digital Preservation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css?v=5.0">
+</head>
+<body class="bg-deep text-dim min-h-screen antialiased">
+
+    <!-- Global Navigation -->
+    <nav class="glass-nav sticky top-0 z-40 px-5 py-4">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <!-- Left: Logo & Nav Links -->
+            <div class="flex items-center space-x-12">
+                <a href="index.html" class="flex items-center space-x-3 cursor-pointer group">
+                    <div class="logo-box-premium">IA</div>
+                    <span class="font-bold text-lg tracking-tight text-white group-hover:text-[var(--accent-primary)] transition-colors duration-300">Iraqi Archive</span>
+                </a>
+
+                <!-- Desktop Nav Links -->
+                <div class="hidden md:flex items-center space-x-8 text-sm font-bold uppercase tracking-widest">
+                    <a href="index.html" class="flex items-center gap-2 text-[var(--text-pure)] hover:text-[var(--accent-primary)] transition-all">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        Explore
+                    </a>
+                    <a href="#vault" id="nav-favorites" class="flex items-center gap-2 text-slate-400 hover:text-white transition-all">
+                        <svg class="w-4 h-4 text-pink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                        Vault
+                    </a>
+                    <a href="admin.html" id="nav-admin" class="hidden flex items-center gap-2 text-[var(--accent-primary)] font-black hover:text-[var(--accent-hover)] transition-all">
+                        <div class="w-1.5 h-1.5 bg-[var(--accent-primary)] rounded-full animate-pulse"></div>
+                        Admin
+                    </a>
+                </div>
+            </div>
+
+            <!-- Right side: Controls -->
+            <div class="flex items-center space-x-6">
+                <!-- Theme Toggle (Desktop Only) -->
+                <button id="theme-toggle" class="hidden md:block p-2 rounded-xl hover:bg-white/5 transition-colors" title="Toggle Theme">
+                    <svg class="w-4.5 h-4.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                    </svg>
+                </button>
+
+                <div id="auth-controls" class="hidden md:flex border-l border-white/10 pl-6 h-8 items-center">
+                    <div id="guest-view" class="flex items-center space-x-6">
+                        <a href="auth.html" class="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 hover:text-white transition-all">Sign In</a>
+                        <a href="auth.html" class="btn-accent px-8 py-2.5 text-[10px] font-bold rounded-full shadow-2xl shadow-purple-500/20 active:scale-95 transition-all">Enroll Now</a>
+                    </div>
+                    <div id="user-view" class="hidden items-center space-x-4">
+                        <div class="flex items-center space-x-3 cursor-pointer group/navuser">
+                            <div class="flex flex-col items-end">
+                                <span id="user-display-name" class="text-[11px] font-black text-white leading-none">Account</span>
+                                <span class="text-[9px] font-bold text-slate-500 uppercase tracking-tighter mt-1">SaaS Member</span>
+                            </div>
+                            <div id="user-avatar" class="w-10 h-10 rounded-full border-2 border-[var(--accent-primary)]/20 group-hover/navuser:border-[var(--accent-primary)] transition-all flex items-center justify-center text-sm font-black text-white bg-[var(--accent-primary)]/10 shadow-lg">?</div>
+                        </div>
+                        <button id="logout-btn" class="p-2 rounded-lg hover:bg-red-500/10 text-slate-500 hover:text-red-400 transition-colors" title="Logout">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Mobile Hamburger (Untouched) -->
+                <button id="mobile-menu-btn" class="md:hidden flex flex-col justify-center items-center w-10 h-10 gap-1.5 rounded-xl border border-white/10 bg-white/5 cursor-pointer">
+                    <span class="hamburger-line"></span>
+                    <span class="hamburger-line"></span>
+                    <span class="hamburger-line"></span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Drawer -->
+        <div id="mobile-drawer" class="mobile-drawer md:hidden">
+            <div class="mobile-drawer-inner">
+                <a href="index.html" class="mobile-nav-link">Explore</a>
+                <a href="#vault" id="mob-nav-favorites" style="display:none" class="mobile-nav-link">Favorite Sites</a>
+                <a href="admin.html" id="mob-nav-admin" style="display:none" class="mobile-nav-link" style="color: var(--accent-primary)">Vault Master</a>
+                <div class="border-t border-white/10 my-3"></div>
+                <div id="mob-guest-view" class="flex flex-col gap-3">
+                    <a href="auth.html" class="mobile-nav-link">Sign In</a>
+                    <a href="auth.html" class="btn-accent text-center py-3 rounded-xl text-xs w-full">Get Access</a>
+                </div>
+                <div id="mob-user-view" style="display:none" class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div id="mob-user-avatar" class="w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-xs font-black text-[var(--accent-primary)]">?</div>
+                        <span id="mob-user-name" class="text-sm font-bold text-white"></span>
+                    </div>
+                    <button id="mob-logout-btn" class="text-xs font-black uppercase text-slate-500 hover:text-red-400 transition-colors">Logout</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container-saas pt-12 pb-24">
+        <!-- Explore Section -->
+        <section id="section-home" class="reveal">
+            <div class="text-center mb-10 px-2">
+                <h2 class="hero-title">
+                    Preserving the <br>
+                    <span class="text-[var(--accent-primary)]">digital frontier.</span>
+                </h2>
+                <p class="text-dim max-w-xl mx-auto mt-4 text-center leading-relaxed text-sm md:text-base">
+                    A curated archive of resources, tools, and digital artifacts for the visionary developer. Use the portal below to explore.
+                </p>
+            </div>
+
+            <!-- Search -->
+            <div class="max-w-2xl mx-auto mb-8 relative px-4">
+                <div class="relative group">
+                    <div class="search-icon-premium">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </div>
+                    <input type="text" id="search-input" 
+                           placeholder="Search the archive..." 
+                           class="search-input-premium w-full pl-12 pr-5 py-4">
+                </div>
+            </div>
+
+            <!-- Category Filter Tabs -->
+            <div id="category-filters" class="category-pills mb-8">
+                <button class="cat-pill active" data-category="All">All Resources</button>
+                <button class="cat-pill" data-category="Frontend">Frontend</button>
+                <button class="cat-pill" data-category="Backend">Backend</button>
+                <button class="cat-pill" data-category="Framework">Framework</button>
+                <button class="cat-pill" data-category="Design">Design</button>
+                <button class="cat-pill" data-category="Database">Database</button>
+                <button class="cat-pill" data-category="DevOps">DevOps</button>
+                <button class="cat-pill" data-category="AI">AI Tools</button>
+                <button class="cat-pill" data-category="Documentation">Docs</button>
+                <button class="cat-pill" data-category="Community">Community</button>
+                <button class="cat-pill" data-category="Tools">Others</button>
+            </div>
+
+            <!-- Resource Grid -->
+            <div id="resource-grid" class="resource-grid">
+                <!-- Data rendered via app.js -->
+            </div>
+        </section>
+
+        <!-- Favorites (Vault) Section -->
+        <section id="section-vault" class="reveal hidden">
+            <div class="text-center mb-12 px-2">
+                <h2 class="text-4xl md:text-5xl font-black text-white leading-tight mb-4">
+                    Your personal <br>
+                    <span class="text-[var(--accent-primary)]">digital vault.</span>
+                </h2>
+                <p class="text-dim max-w-xl mx-auto text-center leading-relaxed text-sm md:text-base">
+                    A curated collection of artifacts you've preserved for future projects. Everything here is synced to your identity.
+                </p>
+            </div>
+
+            <!-- Vault Grid -->
+            <div id="vault-grid" class="resource-grid">
+                <div class="col-span-full py-20 text-center">
+                    <div class="spinner mx-auto mb-4"></div>
+                    <p class="text-slate-500 uppercase tracking-widest text-[10px] font-black">Decrypting Vault...</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="max-w-7xl mx-auto px-6 py-12 border-t border-white/5 mt-10">
+        <div class="flex flex-col md:flex-row justify-between items-center text-[10px] font-black uppercase tracking-[0.3em] text-slate-600 gap-4">
+            <p>&copy; 2026 Iraqi Archive</p>
+            <div class="flex space-x-8">
+                <a href="https://github.com/skyness69/iraqi-archive" target="_blank" class="hover:text-[var(--accent-primary)] transition-colors">Repository</a>
+                <a href="admin.html" class="hover:text-white transition-colors">Administrative</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Details Modal -->
+    <div id="details-modal" class="modal">
+        <div class="glass-card-saas w-full max-w-lg p-8 relative">
+            <button id="close-details" class="absolute top-6 right-6 text-[var(--text-muted)] hover:text-[var(--text-pure)] transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+            <div id="modal-content">
+                <div class="flex items-center gap-4 mb-6">
+                    <div id="modal-icon" class="card-icon-saas !w-14 !h-14 !text-xl !rounded-2xl"></div>
+                    <div>
+                        <h2 id="modal-title" class="text-2xl font-black text-[var(--text-pure)] leading-tight"></h2>
+                        <span id="modal-badge" class="badge-saas mt-2"></span>
+                    </div>
+                </div>
+                <div class="border-t border-white/5 pt-6 mb-8">
+                    <p id="modal-desc" class="text-[var(--text-dim)] leading-relaxed text-base"></p>
+                </div>
+                <a id="modal-link" href="#" target="_blank" class="btn-accent w-full flex items-center justify-center gap-2 py-4 text-sm tracking-widest">
+                    OPEN RESOURCE
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="app.js?v=2.0"></script>
+    <script>
+        // Mobile menu toggle
+        const menuBtn = document.getElementById('mobile-menu-btn');
+        const drawer = document.getElementById('mobile-drawer');
+        menuBtn.addEventListener('click', () => {
+            drawer.classList.toggle('open');
+        });
+        drawer.querySelectorAll('a').forEach(a => {
+            a.addEventListener('click', () => drawer.classList.remove('open'));
+        });
+    </script>
+</body>
+</html>

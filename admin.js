@@ -1,0 +1,272 @@
+/**
+ * admin.js â€” Iraqi Archive Admin Dashboard
+ * RESTRICTED: Only accessible by alaidan25@gmail.com
+ * Features: Add, Edit (modal), Delete resources via Firestore.
+ */
+
+import {
+    auth, db, ADMIN_EMAIL,
+    onAuthStateChanged, signOut,
+    collection, addDoc, deleteDoc, updateDoc, onSnapshot,
+    doc
+} from './firebase-config.js';
+
+import { showToast, escHtml, escQ, shortUrl } from './utils.js';
+
+const COL = 'resources';
+
+// ================================================================
+// DOM REFERENCES
+// ================================================================
+const accessScreen  = document.getElementById('access-denied');
+const dashboard     = document.getElementById('dashboard');
+const adminEmailEl  = document.getElementById('admin-email');
+const adminAvatarEl = document.getElementById('admin-avatar');
+const logoutBtn     = document.getElementById('logout-btn');
+const addForm       = document.getElementById('add-form');
+const addBtn        = document.getElementById('add-btn');
+const addBtnText    = document.getElementById('add-btn-text');
+const addSpinner    = document.getElementById('add-btn-spinner');
+const tbody         = document.getElementById('resource-tbody');
+const tableCount    = document.getElementById('table-count');
+const statTotal     = document.getElementById('stat-total');
+const statCats      = document.getElementById('stat-cats');
+const statDate      = document.getElementById('stat-date');
+// Edit modal
+const editModal     = document.getElementById('edit-modal');
+const editForm      = document.getElementById('edit-form');
+const editId        = document.getElementById('edit-id');
+const editTitle     = document.getElementById('e-title');
+const editDesc      = document.getElementById('e-desc');
+const editUrl       = document.getElementById('e-url');
+const editCategory  = document.getElementById('e-category');
+const editBtnText   = document.getElementById('edit-btn-text');
+const editSpinner   = document.getElementById('edit-btn-spinner');
+
+let unsubscribe = null;
+
+// ================================================================
+// INIT
+// ================================================================
+document.addEventListener('DOMContentLoaded', () => {
+    logoutBtn?.addEventListener('click', () => signOut(auth));
+    addForm?.addEventListener('submit', handleAdd);
+    editForm?.addEventListener('submit', handleEdit);
+    document.getElementById('close-modal')?.addEventListener('click', closeEditModal);
+    editModal?.addEventListener('click', (e) => { if (e.target === editModal) closeEditModal(); });
+    initAdminAuth();
+});
+
+// ================================================================
+// AUTH GUARD
+// ================================================================
+function initAdminAuth() {
+    onAuthStateChanged(auth, (user) => {
+        if (!user) {
+            showAccessDenied('Please sign in first.');
+            setTimeout(() => window.location.href = 'auth.html', 1800);
+            return;
+        }
+        if (user.email.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
+            showAccessDenied('â›” Access Denied â€” Admin Only');
+            showToast('Access denied. Redirecting...', 'error');
+            setTimeout(() => window.location.href = 'index.html', 2000);
+            return;
+        }
+        grantAccess(user);
+    });
+}
+
+function showAccessDenied(msg) {
+    document.getElementById('access-msg').textContent = msg;
+    document.getElementById('access-msg').style.color = '#f87171';
+}
+
+function grantAccess(user) {
+    accessScreen.style.display = 'none';
+    dashboard.style.display    = 'block';
+    adminEmailEl.textContent   = user.email;
+    adminAvatarEl.textContent  = user.email[0].toUpperCase();
+    startListener();
+}
+
+// ================================================================
+// REAL-TIME LISTENER
+// ================================================================
+function startListener() {
+    if (unsubscribe) unsubscribe();
+    unsubscribe = onSnapshot(collection(db, COL), (snap) => {
+        const items = [];
+        snap.forEach(d => items.push({ id: d.id, ...d.data() }));
+        items.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+        renderTable(items);
+        updateStats(items);
+    }, err => showToast('Sync error: ' + err.message, 'error'));
+}
+
+// ================================================================
+// RENDER TABLE
+// ================================================================
+function renderTable(items) {
+    if (!tbody || !tableCount) return;
+    tableCount.textContent = `${items.length} ITEMS`;
+
+    if (items.length === 0) {
+        tbody.innerHTML = `
+            <tr><td colspan="3" style="text-align:center;padding:6rem;color:var(--text-muted);">
+                <p style="font-size:14px; font-weight:600;">No resources in database. Start by adding one below.</p>
+            </td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = items.map(r => `
+        <tr>
+            <td>
+                <div class="flex items-center gap-4">
+                    <div class="logo-box" style="width:38px; height:38px; font-size:12px; flex-shrink:0;">
+                        ${(r.title || '?')[0].toUpperCase()}
+                    </div>
+                    <div>
+                        <p style="font-weight:800; color:var(--text-pure); font-size:14px; letter-spacing:-0.02em;">${escHtml(r.title || '')}</p>
+                        <a href="${escHtml(r.url || '#')}" target="_blank" rel="noopener" 
+                           style="color:var(--accent-primary); font-size:11px; margin-top:2px; text-decoration:none; display:inline-block;">
+                           ${shortUrl(r.url || '')} â†—
+                        </a>
+                    </div>
+                </div>
+            </td>
+            <td>
+                <span class="badge-saas" style="font-size:9px; padding:4px 10px;">${escHtml(r.category || '')}</span>
+            </td>
+            <td>
+                <div class="flex justify-end gap-3">
+                    <button onclick="openEditModal('${r.id}','${escQ(r.title)}','${escQ(r.desc)}','${escQ(r.url)}','${escQ(r.category)}')"
+                        class="btn-accent" style="padding:8px 14px; font-size:10px; border-radius:10px; box-shadow:none;">
+                        EDIT
+                    </button>
+                    <button onclick="confirmDelete('${r.id}','${escQ(r.title)}')"
+                        style="padding:8px 14px; border-radius:10px; border:0.5px solid rgba(239,68,68,0.2); 
+                               background:rgba(239,68,68,0.05); color:#fca5a5; font-size:10px; font-weight:800; cursor:pointer;">
+                        DELETE
+                    </button>
+                </div>
+            </td>
+        </tr>`).join('');
+}
+
+function updateStats(items) {
+    statTotal.textContent = items.length;
+    statCats.textContent  = new Set(items.map(r => r.category).filter(Boolean)).size;
+    statDate.textContent  = new Date().toLocaleDateString('en-GB', { day:'numeric', month:'short' });
+}
+
+// ================================================================
+// ADD RESOURCE
+// ================================================================
+async function handleAdd(e) {
+    e.preventDefault();
+    const title    = document.getElementById('f-title').value.trim();
+    const desc     = document.getElementById('f-desc').value.trim();
+    const url      = document.getElementById('f-url').value.trim();
+    const category = document.getElementById('f-category').value;
+
+    if (!title || !desc || !url || !category) {
+        showToast('Please fill in all fields.', 'error'); return;
+    }
+    try { new URL(url); } catch {
+        showToast('Please enter a valid URL (include https://).', 'error'); return;
+    }
+
+    setAddLoading(true);
+    try {
+        await addDoc(collection(db, COL), {
+            title, desc, url, category,
+            addedAt: new Date().toISOString()
+        });
+        addForm.reset();
+        showToast(`"${title}" added successfully! âœ“`, 'success');
+    } catch (err) {
+        showToast('Failed to add: ' + err.message, 'error');
+    } finally {
+        setAddLoading(false);
+    }
+}
+
+function setAddLoading(on) {
+    addBtn.disabled       = on;
+    addBtnText.textContent = on ? 'DEPLOYING...' : 'DEPLOY RESOURCE';
+    addSpinner.style.display = on ? 'block' : 'none';
+}
+
+// ================================================================
+// EDIT MODAL
+// ================================================================
+window.openEditModal = (id, title, desc, url, category) => {
+    editId.value       = id;
+    editTitle.value    = title;
+    editDesc.value     = desc;
+    editUrl.value      = url;
+    editCategory.value = category;
+    editModal.style.display = 'flex';
+    editModal.style.animation = 'fadeInModal 0.25s ease';
+};
+
+function closeEditModal() {
+    editModal.style.opacity   = '0';
+    editModal.style.transition = 'opacity 0.2s';
+    setTimeout(() => {
+        editModal.style.display  = 'none';
+        editModal.style.opacity  = '1';
+        editModal.style.transition = '';
+    }, 200);
+}
+
+async function handleEdit(e) {
+    e.preventDefault();
+    const id       = editId.value;
+    const title    = editTitle.value.trim();
+    const desc     = editDesc.value.trim();
+    const url      = editUrl.value.trim();
+    const category = editCategory.value;
+
+    if (!title || !desc || !url || !category) {
+        showToast('Please fill in all fields.', 'error'); return;
+    }
+
+    editBtnText.textContent    = 'Saving...';
+    editSpinner.style.display  = 'block';
+    document.getElementById('edit-btn').disabled = true;
+
+    try {
+        await updateDoc(doc(db, COL, id), { title, desc, url, category });
+        showToast(`"${title}" updated! âœ“`, 'success');
+        closeEditModal();
+    } catch (err) {
+        showToast('Update failed: ' + err.message, 'error');
+    } finally {
+        editBtnText.textContent    = 'Save Changes';
+        editSpinner.style.display  = 'none';
+        document.getElementById('edit-btn').disabled = false;
+    }
+}
+
+// ================================================================
+// DELETE
+// ================================================================
+window.confirmDelete = (id, title) => {
+    if (confirm(`Delete "${title}"?\n\nThis removes it from the archive for all users.`)) {
+        deleteResource(id, title);
+    }
+};
+
+async function deleteResource(id, title) {
+    try {
+        await deleteDoc(doc(db, COL, id));
+        showToast(`"${title}" deleted.`, 'success');
+    } catch (err) {
+        showToast('Delete failed: ' + err.message, 'error');
+    }
+}
+
+// Redundant local helpers removed, now using utils.js
+

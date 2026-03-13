@@ -1,0 +1,57 @@
+/* 
+   Iraqi Archive - Centralized Color System
+   Change a color here to update it everywhere across the project.
+*/
+
+:root {
+    /* Core Accent (Neon Purple/Blue) */
+    --accent-primary: #8b5cf6;
+    --accent-hover: #a78bfa;
+    --accent-glow: rgba(139, 92, 246, 0.4);
+    --accent-blue: #3b82f6;
+    --accent-crimson: #ef4444; /* Added missing crimson for admin */
+
+    /* Backgrounds */
+    --bg-deep: #050505;
+    --bg-gradient: radial-gradient(circle at top left, #1f103b, #050505 50%, #050505 100%), radial-gradient(circle at bottom right, #0d1e3d, #050505 50%, #050505 100%);
+    
+    /* Text */
+    --text-pure: #ffffff;
+    --text-dim: #d4d4d8;
+    --text-muted: #a1a1aa;
+
+    /* Surface Tokens (Glassmorphism) */
+    --glass-card: rgba(15, 15, 15, 0.4);
+    --glass-nav: rgba(5, 5, 5, 0.75);
+    --glass-border: rgba(255, 255, 255, 0.05);
+    --glass-border-light: rgba(255, 255, 255, 0.15);
+
+    /* Functional Colors */
+    --status-success: #10b981;
+    --status-error: #ef4444;
+    --status-warning: #f59e0b;
+
+    /* Surface & Shadow */
+    --surface-white: #ffffff;
+    --surface-black: #000000;
+    --shadow-heavy: rgba(0, 0, 0, 0.8);
+    --shadow-soft: rgba(0, 0, 0, 0.4);
+}
+
+/* Light Mode Adjustments */
+[data-theme="light"] {
+    --bg-deep: #f8fafc;
+    --bg-gradient: radial-gradient(circle at top left, #f1f5f9, #f8fafc 50%, #f8fafc 100%);
+    
+    --text-pure: #0f172a;
+    --text-dim: #334155;
+    --text-muted: #64748b;
+
+    --glass-card: rgba(255, 255, 255, 0.8);
+    --glass-nav: rgba(255, 255, 255, 0.9);
+    --glass-border: rgba(0, 0, 0, 0.05);
+    --glass-border-light: rgba(0, 0, 0, 0.1);
+
+    --shadow-heavy: rgba(0, 0, 0, 0.1);
+    --shadow-soft: rgba(0, 0, 0, 0.05);
+}

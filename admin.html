@@ -1,0 +1,334 @@
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | Iraqi Archive</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css?v=4.0">
+    <style>
+        /* --- ADMIN SPECIFIC OVERRIDES --- */
+        body { background: var(--bg-deep); color: var(--text-dim); }
+
+        .sidebar {
+            width: 280px;
+            background: var(--glass-nav);
+            border-right: 0.5px solid var(--glass-border);
+            backdrop-filter: blur(25px);
+            height: 100vh;
+            position: fixed;
+            top: 0; left: 0;
+            display: flex;
+            flex-direction: column;
+            padding: 2.5rem 1.5rem;
+            z-index: 50;
+        }
+
+        .sidebar-logo-saas {
+            display: flex; align-items: center; gap: 1rem; margin-bottom: 3rem;
+        }
+
+        .logo-box {
+            width: 44px; height: 44px;
+            background: var(--glass-card);
+            border: 0.5px solid var(--glass-border);
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 900; color: var(--accent-crimson);
+        }
+
+        .sidebar-nav-saas a {
+            display: flex; align-items: center; gap: 12px;
+            padding: 12px 16px;
+            border-radius: 14px;
+            font-size: 13px; font-weight: 600;
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            margin-bottom: 6px;
+            border: 0.5px solid transparent;
+        }
+
+        .sidebar-nav-saas a:hover {
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text-pure);
+            border-color: var(--glass-border);
+        }
+
+        .sidebar-nav-saas a.active {
+            background: var(--accent-crimson);
+            color: #000;
+        }
+
+        .main-content {
+            margin-left: 280px;
+            padding: 3rem 4rem;
+            min-height: 100vh;
+        }
+
+        .glass-card-saas {
+            background: var(--glass-card);
+            border: 0.5px solid var(--glass-border);
+            border-radius: 2rem;
+            padding: 2.5rem;
+            backdrop-filter: blur(15px);
+        }
+
+        /* --- FORM STYLING --- */
+        .form-input-saas {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.03);
+            border: 0.5px solid var(--glass-border);
+            border-radius: 14px;
+            padding: 14px 18px;
+            color: var(--text-pure);
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s;
+            margin-top: 8px;
+        }
+
+        .form-input-saas:focus {
+            border-color: var(--accent-crimson);
+            box-shadow: 0 0 20px var(--accent-glow);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .btn-accent {
+            background: var(--accent-crimson);
+            color: #000;
+            padding: 14px 24px;
+            border-radius: 14px;
+            font-weight: 800;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-accent:hover {
+            transform: translateY(-2px);
+        }
+
+        /* --- TABLE STYLING --- */
+        .saas-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 12px;
+        }
+
+        .saas-table th {
+            text-align: left;
+            padding: 0 1.5rem;
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--text-muted);
+        }
+
+        .saas-table td {
+            background: var(--glass-card);
+            padding: 1.5rem;
+            border-top: 0.5px solid var(--glass-border);
+            border-bottom: 0.5px solid var(--glass-border);
+        }
+
+        .saas-table td:first-child {
+            border-left: 0.5px solid var(--glass-border);
+            border-top-left-radius: 1.25rem;
+            border-bottom-left-radius: 1.25rem;
+        }
+
+        .saas-table td:last-child {
+            border-right: 0.5px solid var(--glass-border);
+            border-top-right-radius: 1.25rem;
+            border-bottom-right-radius: 1.25rem;
+        }
+
+        /* Modal Styles */
+        .modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); backdrop-filter: blur(10px);
+            display: none; align-items: center; justify-content: center; z-index: 100;
+        }
+        @keyframes fadeInModal { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Access Denied View -->
+    <div id="access-denied" style="display: flex; height: 100vh; align-items: center; justify-content: center; text-align: center; flex-direction: column;">
+        <div class="logo-box" style="margin-bottom: 2rem;">!</div>
+        <h2 id="access-msg" style="font-weight: 800; font-size: 1.5rem; color: var(--text-pure);">Authenticating Session...</h2>
+    </div>
+
+    <!-- Admin Dashboard -->
+    <div id="dashboard" style="display: none;">
+        
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-logo-saas">
+                <a href="index.html" class="flex items-center gap-3 group" style="text-decoration:none">
+                    <div class="logo-box">IA</div>
+                    <span style="font-weight:800; color:var(--text-pure); font-size:18px;">Vault Master</span>
+                </a>
+            </div>
+
+            <nav class="sidebar-nav-saas">
+                <a href="#" class="active">
+                    <svg style="width:18px;height:18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                    Resources
+                </a>
+            </nav>
+
+            <div style="margin-top:auto; padding-top:2rem; border-top:0.5px solid var(--glass-border);">
+                <div class="flex items-center gap-3 px-4 py-3">
+                    <div id="admin-avatar" class="w-8 h-8 rounded-full bg-[var(--accent-primary)]/20 text-[var(--accent-primary)] flex items-center justify-center font-black text-xs">?</div>
+                    <div class="overflow-hidden">
+                        <p id="admin-email" class="text-[10px] font-bold text-[var(--text-pure)] truncate">Admin Account</p>
+                        <button id="logout-btn" class="text-[9px] font-black uppercase text-[var(--accent-hover)] hover:text-[var(--accent-primary)] transition-colors mt-1">Exit Portal</button>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="flex justify-between items-end mb-12">
+                <div>
+                    <h1 class="text-3xl font-black text-[var(--text-pure)] mb-2">Resource Base.</h1>
+                    <p class="text-sm text-[var(--text-muted)] font-medium">Manage and deploy digital artifacts to the public archive.</p>
+                </div>
+                <div id="table-count" class="badge-saas" style="padding: 10px 20px; font-size: 11px;">0 ITEMS</div>
+            </header>
+
+            <!-- Stats Row -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+                <div class="glass-card-saas !p-6 flex flex-col items-center text-center">
+                    <span class="text-[10px] font-black uppercase text-[var(--text-muted)] tracking-widest mb-1">Total Artifacts</span>
+                    <h4 id="stat-total" class="text-2xl font-black text-[var(--accent-primary)]">0</h4>
+                </div>
+                <div class="glass-card-saas !p-6 flex flex-col items-center text-center">
+                    <span class="text-[10px] font-black uppercase text-[var(--text-muted)] tracking-widest mb-1">Categories</span>
+                    <h4 id="stat-cats" class="text-2xl font-black text-[var(--accent-primary)]">0</h4>
+                </div>
+                <div class="glass-card-saas !p-6 flex flex-col items-center text-center">
+                    <span class="text-[10px] font-black uppercase text-[var(--text-muted)] tracking-widest mb-1">Last Update</span>
+                    <h4 id="stat-date" class="text-2xl font-black text-[var(--accent-primary)]">-</h4>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+                
+                <!-- Add Form Column -->
+                <div class="lg:col-span-1">
+                    <div class="glass-card-saas">
+                        <h3 class="text-lg font-bold text-[var(--text-pure)] mb-6">Deploy Artifact</h3>
+                        <form id="add-form">
+                            <div class="form-group mb-5">
+                                <label>Site Title</label>
+                                <input type="text" id="f-title" class="form-input-saas" placeholder="e.g. Supabase">
+                            </div>
+                            <div class="form-group mb-5">
+                                <label>Description</label>
+                                <textarea id="f-desc" class="form-input-saas" style="height: 100px; resize: none;" placeholder="Project summary..."></textarea>
+                            </div>
+                            <div class="form-group mb-5">
+                                <label>Access URL</label>
+                                <input type="url" id="f-url" class="form-input-saas" placeholder="https://...">
+                            </div>
+                            <div class="form-group mb-8">
+                                <label>Section</label>
+                                <select id="f-category" class="form-input-saas">
+                                    <option value="">Select Category</option>
+                                    <option value="Frontend">Frontend</option>
+                                    <option value="Backend">Backend</option>
+                                    <option value="Tools">Tools</option>
+                                    <option value="AI">AI Tools</option>
+                                    <option value="Design">Design</option>
+                                </select>
+                            </div>
+                            <button type="submit" id="add-btn" class="btn-accent w-full flex items-center justify-center gap-3">
+                                <span id="add-btn-text">Deploy Resource</span>
+                                <div id="add-btn-spinner" class="spinner" style="width:16px;height:16px;display:none;border-color:rgba(0,0,0,0.1);border-top-color:#000;"></div>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Table Column -->
+                <div class="lg:col-span-2">
+                    <table class="saas-table">
+                        <thead>
+                            <tr>
+                                <th>IDENTIFIER</th>
+                                <th>SECTION</th>
+                                <th style="text-align:right">ACTIONS</th>
+                            </tr>
+                        </thead>
+                        <tbody id="resource-tbody">
+                            <!-- JS Inject -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="edit-modal" class="modal">
+        <div class="glass-card-saas w-full max-w-lg">
+            <div class="flex justify-between items-center mb-8">
+                <h3 class="text-xl font-black text-[var(--text-pure)]">Modify Artifact</h3>
+                <button id="close-modal" class="text-[var(--text-muted)] hover:text-[var(--text-pure)] transition-colors">
+                    <svg style="width:24px;height:24px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <form id="edit-form">
+                <input type="hidden" id="edit-id">
+                <div class="form-group mb-4">
+                    <label>Title</label>
+                    <input type="text" id="e-title" class="form-input-saas">
+                </div>
+                <div class="form-group mb-4">
+                    <label>Description</label>
+                    <textarea id="e-desc" class="form-input-saas" style="height: 80px;"></textarea>
+                </div>
+                <div class="form-group mb-4">
+                    <label>URL</label>
+                    <input type="url" id="e-url" class="form-input-saas">
+                </div>
+                <div class="form-group mb-8">
+                    <label>Category</label>
+                    <select id="e-category" class="form-input-saas">
+                        <option value="Frontend">Frontend</option>
+                        <option value="Backend">Backend</option>
+                        <option value="Tools">Tools</option>
+                        <option value="AI">AI Tools</option>
+                        <option value="Design">Design</option>
+                    </select>
+                </div>
+                <button type="submit" id="edit-btn" class="btn-accent w-full flex items-center justify-center gap-3">
+                    <span id="edit-btn-text">Save Changes</span>
+                    <div id="edit-btn-spinner" class="spinner" style="width:16px;height:16px;display:none;border-color:rgba(0,0,0,0.1);border-top-color:#000;"></div>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Firebase System -->
+    <div id="toast-container"></div>
+    <script type="module" src="admin.js"></script>
+</body>
+</html>
+
+
+
+
+
+
+

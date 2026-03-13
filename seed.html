@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seed Database | Iraqi Archive</title>
+    <style>
+        * { font-family: 'monospace', monospace; box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: #0f172a; color: #e2e8f0; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 2rem; }
+        .card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 1.5rem; padding: 2.5rem; max-width: 580px; width: 100%; }
+        h1 { font-size: 1.4rem; font-weight: 900; color: #f1f5f9; margin-bottom: 0.5rem; }
+        p { color: #64748b; font-size: 13px; line-height: 1.7; margin-bottom: 1.5rem; }
+        .site-list { margin-bottom: 2rem; display: flex; flex-direction: column; gap: 8px; }
+        .site-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; font-size: 12px; }
+        .site-item .dot { width: 8px; height: 8px; border-radius: 50%; background: #334155; flex-shrink: 0; }
+        .site-item .dot.done { background: #10b981; }
+        .site-item .dot.error { background: #ef4444; }
+        .site-name { font-weight: 700; color: #cbd5e1; min-width: 130px; }
+        .site-cat { font-size: 10px; color: #475569; background: rgba(99,102,241,0.1); padding: 2px 8px; border-radius: 4px; }
+        .site-status { margin-left: auto; font-size: 11px; color: #475569; }
+        .btn { width: 100%; padding: 14px; border-radius: 12px; border: none; cursor: pointer; font-size: 14px; font-weight: 700; letter-spacing: 0.05em; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-seed { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; }
+        .btn-seed:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(99,102,241,0.4); }
+        .btn-seed:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+        .btn-home { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: #94a3b8; margin-top: 10px; }
+        .btn-home:hover { background: rgba(255,255,255,0.1); }
+        .spinner { width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .result { margin-top: 1rem; padding: 12px 16px; border-radius: 10px; font-size: 12px; font-weight: 600; text-align: center; }
+        .result.success { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.2); color: #6ee7b7; }
+        .result.error   { background: rgba(239,68,68,0.1);  border: 1px solid rgba(239,68,68,0.2);  color: #fca5a5; }
+        #not-logged-in { display: none; color: #f87171; font-size: 13px; text-align: center; margin-top: 1rem; }
+    </style>
+</head>
+<body>
+<div class="card">
+    <h1>🌱 Seed Database</h1>
+    <p>Clicks "Seed Now" to write all websites below directly into your <strong style="color:#818cf8;">Firestore resources collection</strong>. No hardcoded data — this is the real thing.</p>
+
+    <div class="site-list" id="site-list">
+        <!-- Populated by JS -->
+    </div>
+
+    <button class="btn btn-seed" id="seed-btn" onclick="seedAll()">
+        <span id="btn-text">🚀 Seed Now</span>
+        <div class="spinner" id="spinner" style="display:none;"></div>
+    </button>
+    <a href="index.html"><button class="btn btn-home">← Back to Site</button></a>
+
+    <div id="result"></div>
+    <p id="not-logged-in">⚠️ You must be logged in as admin to seed the database. <a href="auth.html" style="color:#6366f1;">Sign In →</a></p>
+</div>
+
+<script type="module">
+import { auth, db, ADMIN_EMAIL, onAuthStateChanged, collection, addDoc, getDocs, deleteDoc, doc } from './firebase-config.js';
+
+// ─── WEBSITES TO SEED ─────────────────────────────────────
+const SITES = [
+    { title: "Vite",           desc: "Next generation frontend tooling with lightning fast HMR and ES module support.",             url: "https://vitejs.dev",              category: "Frontend" },
+    { title: "React",          desc: "The library for building component-based user interfaces for web and native apps.",           url: "https://react.dev",               category: "Frontend" },
+    { title: "Next.js",        desc: "The React framework with hybrid static & server rendering, TypeScript support and more.",     url: "https://nextjs.org",              category: "Framework" },
+    { title: "Tailwind CSS",   desc: "A utility-first CSS framework for rapid, consistent UI development without leaving HTML.",    url: "https://tailwindcss.com",         category: "Design" },
+    { title: "Supabase",       desc: "Open source Firebase alternative with Postgres, authentication, storage and edge functions.", url: "https://supabase.com",            category: "Backend" },
+    { title: "Firebase",       desc: "Google's platform for app development with Auth, Firestore, Hosting and Cloud Functions.",   url: "https://firebase.google.com",     category: "Backend" },
+    { title: "Vercel",         desc: "Deploy web projects with zero configuration. The platform built for frontend developers.",    url: "https://vercel.com",              category: "Deployment" },
+    { title: "GitHub",         desc: "The world's leading development platform for version control and open source collaboration.", url: "https://github.com",              category: "DevOps" },
+    { title: "MDN Web Docs",   desc: "Comprehensive documentation for web technologies — HTML, CSS, JavaScript and Web APIs.",     url: "https://developer.mozilla.org",   category: "Documentation" },
+    { title: "ChatGPT",        desc: "OpenAI's powerful AI assistant for writing code, debugging, brainstorming and learning.",    url: "https://chatgpt.com",             category: "AI" },
+    { title: "Framer Motion",  desc: "A production-ready animation library for React with a simple and powerful API.",             url: "https://framer.com/motion",       category: "Design" },
+    { title: "Dev.to",         desc: "A community of software developers sharing articles, tutorials, and career advice.",        url: "https://dev.to",                  category: "Community" },
+    { title: "Stack Overflow", desc: "The largest online community for programmers to learn and share their knowledge.",           url: "https://stackoverflow.com",       category: "Community" },
+    { title: "TypeScript",     desc: "Typed superset of JavaScript that compiles to plain JS. Catch errors before runtime.",      url: "https://www.typescriptlang.org",  category: "Frontend" },
+    { title: "Prisma",         desc: "Next-generation ORM for Node.js and TypeScript with an intuitive data model.",              url: "https://prisma.io",               category: "Database" },
+];
+
+// Render site list
+const list = document.getElementById('site-list');
+SITES.forEach((s, i) => {
+    list.innerHTML += `
+        <div class="site-item" id="item-${i}">
+            <div class="dot" id="dot-${i}"></div>
+            <span class="site-name">${s.title}</span>
+            <span class="site-cat">${s.category}</span>
+            <span class="site-status" id="status-${i}">Pending</span>
+        </div>`;
+});
+
+let adminReady = false;
+
+onAuthStateChanged(auth, (user) => {
+    if (user && user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
+        adminReady = true;
+    } else {
+        document.getElementById('not-logged-in').style.display = 'block';
+        document.getElementById('seed-btn').disabled = true;
+    }
+});
+
+window.seedAll = async () => {
+    if (!adminReady) {
+        document.getElementById('not-logged-in').style.display = 'block';
+        return;
+    }
+
+    const btn     = document.getElementById('seed-btn');
+    const btnText = document.getElementById('btn-text');
+    const spinner = document.getElementById('spinner');
+    const result  = document.getElementById('result');
+
+    btn.disabled      = true;
+    btnText.textContent = 'Seeding...';
+    spinner.style.display = 'block';
+    result.innerHTML  = '';
+
+    let success = 0;
+    let failed  = 0;
+
+    // Clear existing resources first to avoid duplicates
+    try {
+        const existing = await getDocs(collection(db, 'resources'));
+        for (const d of existing.docs) {
+            await deleteDoc(doc(db, 'resources', d.id));
+        }
+    } catch (e) { /* ignore */ }
+
+    // Write each site
+    for (let i = 0; i < SITES.length; i++) {
+        const site = SITES[i];
+        const statusEl = document.getElementById(`status-${i}`);
+        const dotEl    = document.getElementById(`dot-${i}`);
+
+        statusEl.textContent = 'Writing...';
+        statusEl.style.color = '#f59e0b';
+
+        try {
+            await addDoc(collection(db, 'resources'), {
+                ...site,
+                addedAt: new Date().toISOString()
+            });
+            dotEl.classList.add('done');
+            statusEl.textContent = '✓ Added';
+            statusEl.style.color = '#10b981';
+            success++;
+        } catch (e) {
+            dotEl.classList.add('error');
+            statusEl.textContent = '✗ Failed';
+            statusEl.style.color = '#ef4444';
+            console.error(`Failed to add ${site.title}:`, e);
+            failed++;
+        }
+
+        // Small delay so UI updates are visible
+        await new Promise(r => setTimeout(r, 150));
+    }
+
+    btnText.textContent   = 'Done!';
+    spinner.style.display = 'none';
+
+    result.className = `result ${failed === 0 ? 'success' : 'error'}`;
+    result.textContent = failed === 0
+        ? `✓ All ${success} resources added to Firestore! Go check the Explore page.`
+        : `⚠️ ${success} added, ${failed} failed. Check your Firestore rules.`;
+
+    if (failed === 0) {
+        setTimeout(() => { window.location.href = 'index.html'; }, 2500);
+    }
+};
+</script>
+</body>
+</html>

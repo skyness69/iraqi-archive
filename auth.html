@@ -1,0 +1,79 @@
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Identity | Iraqi Archive</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css?v=4.0">
+</head>
+<body class="auth-theme-wrapper">
+
+    <div class="auth-card">
+        <!-- Back Link -->
+        <a href="index.html" class="back-link">
+            <svg style="width: 18px; margin-right: 8px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+            </svg>
+            Back to Registry
+        </a>
+
+        <!-- Header -->
+        <div class="logo-icon">IA</div>
+        <h1 id="auth-title">Welcome Back.</h1>
+        <p id="auth-subtitle" class="subtitle">Please enter your credentials to access the vault portal.</p>
+
+        <!-- Error/Success Message Divs -->
+        <div id="error-message" class="error-div hidden"></div>
+        <div id="success-message" class="success-div hidden"></div>
+
+        <!-- Auth Form (Login/Signup) -->
+        <form id="auth-form">
+            <div class="form-group">
+                <label for="email">Email Portal</label>
+                <input type="email" id="email" placeholder="name@identity.com" required>
+            </div>
+            
+            <div id="password-group" class="form-group">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <label for="password">Security Code</label>
+                    <button type="button" id="forgot-password-link" class="toggle-btn" style="font-size: 10px; margin-bottom: 8px; text-decoration: none;">Forgot?</button>
+                </div>
+                <input type="password" id="password" placeholder="Enter your password" required>
+            </div>
+
+            <button type="submit" id="submit-btn" class="submit-btn">
+                <span id="btn-text">Authenticate</span>
+                <div id="btn-spinner" class="spinner hidden"></div>
+            </button>
+        </form>
+
+        <!-- Reset Password View (Hidden by default) -->
+        <div id="reset-view" class="hidden animate-in">
+            <div class="form-group">
+                <label for="reset-email">Recovery Email</label>
+                <input type="email" id="reset-email" placeholder="name@identity.com">
+            </div>
+            <button id="send-reset-btn" class="submit-btn">
+                <span id="reset-btn-text">Send Reset Link</span>
+                <div id="reset-btn-spinner" class="spinner hidden"></div>
+            </button>
+            <button id="back-to-login" class="toggle-btn" style="width: 100%; margin-top: 24px; text-decoration: none; font-size: 12px;">Return to Portal</button>
+        </div>
+
+        <!-- Footer Toggle -->
+        <div class="toggle-area">
+            <span id="toggle-prompt" style="font-size: 12px;">New to the archive?</span>
+            <button id="toggle-auth" class="toggle-btn" style="font-size: 12px;">Enroll Now</button>
+        </div>
+    </div>
+
+    <!-- Firebase Logic -->
+    <script type="module" src="auth.js"></script>
+</body>
+</html>
+
+
+
+
+

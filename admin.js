@@ -57,6 +57,7 @@ const catTbody = document.getElementById('category-tbody');
 let unsubscribeRes = null;
 let unsubscribeCat = null;
 let categories = []; 
+let editingCatId = null; // Track which category we are editing
 
 // ================================================================
 // INIT
@@ -336,36 +337,96 @@ async function deleteResource(id, title) {
 // CATEGORY MANAGEMENT
 // ================================================================
 function renderCategoryTable(items) {
-    if (!catTbody) return;
+    const tbody = document.getElementById('category-tbody');
+    if (!tbody) return;
+
     if (items.length === 0) {
-        catTbody.innerHTML = '<tr><td colspan="2" style="text-align:center;padding:4rem;color:var(--text-muted);">No categories defined.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="2" style="text-align:center;padding:4rem;color:var(--text-muted);"><p>No categories defined.</p></td></tr>';
         return;
     }
-    catTbody.innerHTML = items.map(c => `
+
+    tbody.innerHTML = items.map(c => `
         <tr>
             <td><p style="font-weight:800; color:var(--text-pure); font-size:14px;">${escHtml(c.name)}</p></td>
             <td style="text-align:right">
-                <button onclick="confirmDeleteCategory('${c.id}','${escQ(c.name)}')"
-                    style="padding:8px 14px; border-radius:10px; border:0.5px solid rgba(239,68,68,0.2); 
-                           background:rgba(239,68,68,0.05); color:#fca5a5; font-size:10px; font-weight:800; cursor:pointer;">
-                    DELETE
-                </button>
+                <div class="flex justify-end gap-3">
+                    <button onclick="openEditCategory('${c.id}','${escQ(c.name)}')"
+                        class="btn-accent" style="padding:8px 14px; font-size:10px; border-radius:10px; box-shadow:none;">
+                        EDIT
+                    </button>
+                    <button onclick="confirmDeleteCategory('${c.id}','${escQ(c.name)}')"
+                        style="padding:8px 14px; border-radius:10px; border:0.5px solid rgba(239,68,68,0.2); 
+                               background:rgba(239,68,68,0.05); color:#fca5a5; font-size:10px; font-weight:800; cursor:pointer;">
+                        DELETE
+                    </button>
+                </div>
             </td>
         </tr>`).join('');
 }
 
 async function handleAddCategory(e) {
     e.preventDefault();
-    const name = document.getElementById('c-name').value.trim();
+    const nameInput = document.getElementById('c-name');
+    const btn = document.getElementById('cat-add-btn');
+    const name = nameInput.value.trim();
+
     if (!name) return;
 
+    btn.disabled = true;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = 'Processing...';
+
     try {
-        await addDoc(collection(db, CAT_COL), { name });
-        document.getElementById('c-name').value = '';
-        showToast(`Category "${name}" created!`, 'success');
+        if (editingCatId) {
+            // Update mode
+            await updateDoc(doc(db, CAT_COL, editingCatId), { name });
+            showToast(`Category updated to "${name}"`, 'success');
+            cancelEditCategory();
+        } else {
+            // Add mode
+            await addDoc(collection(db, CAT_COL), { name });
+            showToast(`Category "${name}" created!`, 'success');
+        }
+        nameInput.value = '';
     } catch (err) {
-        showToast('Cat Add failed: ' + err.message, 'error');
+        showToast('Operation failed: ' + err.message, 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
     }
+}
+
+window.openEditCategory = (id, name) => {
+    editingCatId = id;
+    const nameInput = document.getElementById('c-name');
+    const btnSpan = document.querySelector('#cat-add-btn span');
+    
+    if (nameInput) nameInput.value = name;
+    if (btnSpan) btnSpan.textContent = 'Update Category';
+    
+    // Add a cancel button if it doesn't exist
+    if (!document.getElementById('cat-cancel-btn')) {
+        const cancelBtn = document.createElement('button');
+        cancelBtn.id = 'cat-cancel-btn';
+        cancelBtn.type = 'button';
+        cancelBtn.textContent = 'Cancel Edit';
+        cancelBtn.className = 'w-full mt-4 text-[10px] font-bold text-slate-500 hover:text-white uppercase tracking-widest transition-colors';
+        cancelBtn.onclick = cancelEditCategory;
+        document.getElementById('cat-form').appendChild(cancelBtn);
+    }
+    
+    nameInput.focus();
+};
+
+function cancelEditCategory() {
+    editingCatId = null;
+    const nameInput = document.getElementById('c-name');
+    const btnSpan = document.querySelector('#cat-add-btn span');
+    const cancelBtn = document.getElementById('cat-cancel-btn');
+    
+    if (nameInput) nameInput.value = '';
+    if (btnSpan) btnSpan.textContent = 'Create Category';
+    if (cancelBtn) cancelBtn.remove();
 }
 
 window.confirmDeleteCategory = (id, name) => {

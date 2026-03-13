@@ -20,11 +20,9 @@ service cloud.firestore {
       allow read, write: if true;
     }
 
-    // ─── BUG REPORTS (Public create, Admin manage) ─────────────────
+    // ─── BUG REPORTS (Security Temporary Flush) ─────────────────
     match /bug_reports/{docId} {
-      allow create: if true;
-      allow read, update, delete: if request.auth != null 
-                                  && request.auth.token.email.matches('(?i)alaidan25@gmail\\.com');
+      allow read, write, create: if true;
     }
 
   }

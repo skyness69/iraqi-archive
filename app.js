@@ -11,7 +11,7 @@ import {
     doc, setDoc, deleteDoc, getDoc
 } from './firebase-config.js';
 
-import { showToast } from './utils.js';
+import { showToast, escHtml, escQ } from './utils.js';
 
 // ================================================================
 // STATE
@@ -113,8 +113,8 @@ function renderCategoryTabs() {
 
     const allBtn = `<button class="cat-pill ${currentCategory === 'All' ? 'active' : ''}" data-category="All">All Resources</button>`;
     const catBtns = categories.map(c => `
-        <button class="cat-pill ${currentCategory === c.name ? 'active' : ''}" data-category="${c.name}">
-            ${c.name}
+        <button class="cat-pill ${currentCategory === c.name ? 'active' : ''}" data-category="${escQ(c.name || '')}">
+            ${escHtml(c.name || '')}
         </button>
     `).join('');
 

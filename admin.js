@@ -13,7 +13,8 @@ import {
 
 import { showToast, escHtml, escQ, shortUrl } from './utils.js';
 
-const COL = 'resources';
+const COL      = 'resources';
+const CAT_COL  = 'categories';
 
 // ================================================================
 // DOM REFERENCES
@@ -43,7 +44,19 @@ const editCategory  = document.getElementById('e-category');
 const editBtnText   = document.getElementById('edit-btn-text');
 const editSpinner   = document.getElementById('edit-btn-spinner');
 
-let unsubscribe = null;
+// Sections
+const resourcesSection = document.getElementById('resources-section');
+const categoriesSection = document.getElementById('categories-section');
+const sideNavResources = document.getElementById('side-nav-resources');
+const sideNavCategories = document.getElementById('side-nav-categories');
+
+// Category Management
+const catForm = document.getElementById('cat-form');
+const catTbody = document.getElementById('category-tbody');
+
+let unsubscribeRes = null;
+let unsubscribeCat = null;
+let categories = []; 
 
 // ================================================================
 // INIT
@@ -52,8 +65,20 @@ document.addEventListener('DOMContentLoaded', () => {
     logoutBtn?.addEventListener('click', () => signOut(auth));
     addForm?.addEventListener('submit', handleAdd);
     editForm?.addEventListener('submit', handleEdit);
+    catForm?.addEventListener('submit', handleAddCategory);
+    
     document.getElementById('close-modal')?.addEventListener('click', closeEditModal);
     editModal?.addEventListener('click', (e) => { if (e.target === editModal) closeEditModal(); });
+
+    sideNavResources?.addEventListener('click', (e) => {
+        e.preventDefault();
+        showSection('resources');
+    });
+    sideNavCategories?.addEventListener('click', (e) => {
+        e.preventDefault();
+        showSection('categories');
+    });
+
     initAdminAuth();
 });
 
@@ -87,21 +112,60 @@ function grantAccess(user) {
     dashboard.style.display    = 'block';
     adminEmailEl.textContent   = user.email;
     adminAvatarEl.textContent  = user.email[0].toUpperCase();
-    startListener();
+    startListeners();
+}
+
+function showSection(name) {
+    if (name === 'resources') {
+        resourcesSection.classList.remove('hidden');
+        categoriesSection.classList.add('hidden');
+        sideNavResources.classList.add('active');
+        sideNavCategories.classList.remove('active');
+    } else {
+        resourcesSection.classList.add('hidden');
+        categoriesSection.classList.remove('hidden');
+        sideNavResources.classList.remove('active');
+        sideNavCategories.classList.add('active');
+    }
 }
 
 // ================================================================
-// REAL-TIME LISTENER
+// REAL-TIME LISTENERS
 // ================================================================
-function startListener() {
-    if (unsubscribe) unsubscribe();
-    unsubscribe = onSnapshot(collection(db, COL), (snap) => {
+function startListeners() {
+    if (unsubscribeRes) unsubscribeRes();
+    if (unsubscribeCat) unsubscribeCat();
+
+    // Resources
+    unsubscribeRes = onSnapshot(collection(db, COL), (snap) => {
         const items = [];
         snap.forEach(d => items.push({ id: d.id, ...d.data() }));
         items.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
         renderTable(items);
         updateStats(items);
     }, err => showToast('Sync error: ' + err.message, 'error'));
+
+    // Categories
+    unsubscribeCat = onSnapshot(collection(db, CAT_COL), (snap) => {
+        categories = [];
+        snap.forEach(d => categories.push({ id: d.id, ...d.data() }));
+        categories.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+        renderCategoryTable(categories);
+        updateCategorySelects();
+    }, err => showToast('Cat Sync error: ' + err.message, 'error'));
+}
+
+function updateCategorySelects() {
+    const fCat = document.getElementById('f-category');
+    const eCat = document.getElementById('e-category');
+    if (!fCat || !eCat) return;
+
+    const options = `
+        <option value="">Select Category</option>
+        ${categories.map(c => `<option value="${escHtml(c.name)}">${escHtml(c.name)}</option>`).join('')}
+    `;
+    fCat.innerHTML = options;
+    eCat.innerHTML = options;
 }
 
 // ================================================================
@@ -268,5 +332,47 @@ async function deleteResource(id, title) {
     }
 }
 
-// Redundant local helpers removed, now using utils.js
+// ================================================================
+// CATEGORY MANAGEMENT
+// ================================================================
+function renderCategoryTable(items) {
+    if (!catTbody) return;
+    if (items.length === 0) {
+        catTbody.innerHTML = '<tr><td colspan="2" style="text-align:center;padding:4rem;color:var(--text-muted);">No categories defined.</td></tr>';
+        return;
+    }
+    catTbody.innerHTML = items.map(c => `
+        <tr>
+            <td><p style="font-weight:800; color:var(--text-pure); font-size:14px;">${escHtml(c.name)}</p></td>
+            <td style="text-align:right">
+                <button onclick="confirmDeleteCategory('${c.id}','${escQ(c.name)}')"
+                    style="padding:8px 14px; border-radius:10px; border:0.5px solid rgba(239,68,68,0.2); 
+                           background:rgba(239,68,68,0.05); color:#fca5a5; font-size:10px; font-weight:800; cursor:pointer;">
+                    DELETE
+                </button>
+            </td>
+        </tr>`).join('');
+}
+
+async function handleAddCategory(e) {
+    e.preventDefault();
+    const name = document.getElementById('c-name').value.trim();
+    if (!name) return;
+
+    try {
+        await addDoc(collection(db, CAT_COL), { name });
+        document.getElementById('c-name').value = '';
+        showToast(`Category "${name}" created!`, 'success');
+    } catch (err) {
+        showToast('Cat Add failed: ' + err.message, 'error');
+    }
+}
+
+window.confirmDeleteCategory = (id, name) => {
+    if (confirm(`Delete category "${name}"?\n\nCaution: Resources using this category will still exist but without an assigned section.`)) {
+        deleteDoc(doc(db, CAT_COL, id))
+            .then(() => showToast(`Category "${name}" removed.`, 'success'))
+            .catch(err => showToast('Delete failed: ' + err.message, 'error'));
+    }
+};
 

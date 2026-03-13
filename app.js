@@ -16,14 +16,16 @@ import { showToast } from './utils.js';
 // ================================================================
 // STATE
 // ================================================================
-let resources       = [];   // From Firestore
-let savedIds        = [];   // Saved in users/{uid}/favorites/
+let resources       = [];   
+let categories      = [];   
+let savedIds        = [];   
 let currentUser     = null;
 let currentCategory = 'All';
 let currentView     = 'Home';
 let currentPage     = 1;
 const ITEMS_PER_PAGE = 12;
 let unsubResources  = null;
+let unsubCategories = null;
 let unsubFavorites  = null;
 
 // ================================================================
@@ -31,8 +33,8 @@ let unsubFavorites  = null;
 // ================================================================
 document.addEventListener('DOMContentLoaded', () => {
     startResourcesListener();
+    startCategoriesListener();
     initAuthObserver();
-    initFilterSystem();
     document.getElementById('search-input')
         ?.addEventListener('input', () => renderResources());
     initRouting();
@@ -92,29 +94,49 @@ function updateUIRouting() {
 }
 
 // ================================================================
-// FILTER SYSTEM INITIALIZATION
+// CATEGORIES LISTENER & RENDERING
 // ================================================================
-function initFilterSystem() {
-    const btns = document.querySelectorAll('.cat-pill');
-    btns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            btns.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
+function startCategoriesListener() {
+    if (unsubCategories) unsubCategories();
 
+    unsubCategories = onSnapshot(collection(db, 'categories'), (snap) => {
+        categories = [];
+        snap.forEach(d => categories.push({ id: d.id, ...d.data() }));
+        categories.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+        renderCategoryTabs();
+    }, err => console.error('Categories error:', err));
+}
+
+function renderCategoryTabs() {
+    const container = document.getElementById('category-filters');
+    if (!container) return;
+
+    const allBtn = `<button class="cat-pill ${currentCategory === 'All' ? 'active' : ''}" data-category="All">All Resources</button>`;
+    const catBtns = categories.map(c => `
+        <button class="cat-pill ${currentCategory === c.name ? 'active' : ''}" data-category="${c.name}">
+            ${c.name}
+        </button>
+    `).join('');
+
+    container.innerHTML = allBtn + catBtns;
+
+    // Re-bind click events
+    container.querySelectorAll('.cat-pill').forEach(btn => {
+        btn.addEventListener('click', () => {
+            container.querySelectorAll('.cat-pill').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
             currentCategory = btn.getAttribute('data-category') || 'All';
-            
-            // Premium Grid Animation
+            currentPage = 1;
+
             const grid = document.getElementById('resource-grid');
             if (grid) {
                 grid.style.opacity = '0';
-                grid.style.transform = 'translateY(20px) scale(0.98)';
-                grid.style.transition = 'all 0.5s cubic-bezier(0.16, 1, 0.3, 1)';
-                
+                grid.style.transform = 'translateY(10px)';
                 setTimeout(() => {
                     renderResources();
                     grid.style.opacity = '1';
-                    grid.style.transform = 'translateY(0) scale(1)';
-                }, 300);
+                    grid.style.transform = 'translateY(0)';
+                }, 200);
             } else {
                 renderResources();
             }

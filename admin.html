@@ -179,9 +179,13 @@
             </div>
 
             <nav class="sidebar-nav-saas">
-                <a href="#" class="active">
+                <a href="#" id="side-nav-resources" class="active">
                     <svg style="width:18px;height:18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
                     Resources
+                </a>
+                <a href="#" id="side-nav-categories">
+                    <svg style="width:18px;height:18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h10a2 2 0 012 2v14a2 2 0 01-2 2H7a2 2 0 01-2-2V5a2 2 0 012-2z"/></svg>
+                    Categories
                 </a>
             </nav>
 
@@ -198,7 +202,9 @@
 
         <!-- Main Content -->
         <main class="main-content">
-            <header class="flex justify-between items-end mb-12">
+            <!-- Resources Section -->
+            <section id="resources-section">
+                <header class="flex justify-between items-end mb-12">
                 <div>
                     <h1 class="text-3xl font-black text-[var(--text-pure)] mb-2">Resource Base.</h1>
                     <p class="text-sm text-[var(--text-muted)] font-medium">Manage and deploy digital artifacts to the public archive.</p>
@@ -275,6 +281,50 @@
                         </tbody>
                     </table>
                 </div>
+            </section>
+
+            <!-- Categories Section -->
+            <section id="categories-section" class="hidden">
+                <header class="flex justify-between items-end mb-12">
+                    <div>
+                        <h1 class="text-3xl font-black text-[var(--text-pure)] mb-2">Category Base.</h1>
+                        <p class="text-sm text-[var(--text-muted)] font-medium">Manage the sections used for sorting your archive.</p>
+                    </div>
+                </header>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+                    <!-- Add Category Form -->
+                    <div class="lg:col-span-1">
+                        <div class="glass-card-saas">
+                            <h3 class="text-lg font-bold text-[var(--text-pure)] mb-6">New Category</h3>
+                            <form id="cat-form">
+                                <div class="form-group mb-8">
+                                    <label>Category Name</label>
+                                    <input type="text" id="c-name" class="form-input-saas" placeholder="e.g. Infrastructure">
+                                </div>
+                                <button type="submit" id="cat-add-btn" class="btn-accent w-full flex items-center justify-center gap-3">
+                                    <span>Create Category</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Category List -->
+                    <div class="lg:col-span-2">
+                        <table class="saas-table">
+                            <thead>
+                                <tr>
+                                    <th>CATEGORY NAME</th>
+                                    <th style="text-align:right">ACTIONS</th>
+                                </tr>
+                            </thead>
+                            <tbody id="category-tbody">
+                                <!-- JS Inject -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
             </div>
         </main>
     </div>

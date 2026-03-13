@@ -335,31 +335,24 @@
                         </table>
                     </div>
                 </div>
-                </div>
             </section>
 
             <!-- Bug Reports Section -->
             <section id="bugs-section" class="hidden">
                 <header class="flex justify-between items-end mb-12">
                     <div>
-                        <h1 class="text-3xl font-black text-[var(--text-pure)] mb-2">Bug Infiltrations.</h1>
-                        <p class="text-sm text-[var(--text-muted)] font-medium">Review field reports and user-submitted discrepancies.</p>
+                        <h1 class="text-3xl font-black text-[var(--text-pure)] mb-2">Field Reports.</h1>
+                        <p class="text-sm text-[var(--text-muted)] font-medium">Review and resolve incoming site telemetry and user issues.</p>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <span id="bug-count-badge" class="bg-red-500/10 text-red-400 text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-full border border-red-500/20">0 Reports</span>
                     </div>
                 </header>
 
-                <div class="glass-card-saas !p-0 overflow-hidden">
-                    <table class="saas-table !my-0" style="border-collapse: collapse; border-spacing: 0;">
-                        <thead class="bg-white/5">
-                            <tr>
-                                <th class="py-6 pl-8">REPORTER</th>
-                                <th>LOG DATA</th>
-                                <th style="text-align:right" class="pr-8">ACTIONS</th>
-                            </tr>
-                        </thead>
-                        <tbody id="bugs-tbody">
-                            <!-- JS Inject -->
-                        </tbody>
-                    </table>
+                <div class="glass-card-saas !p-0">
+                    <div id="bugs-container" class="divide-y divide-white/5">
+                        <!-- JS Inject: Bug Cards -->
+                    </div>
                 </div>
             </section>
             </div>
@@ -409,7 +402,7 @@
 
     <!-- Firebase System -->
     <div id="toast-container"></div>
-    <script type="module" src="admin.js?v=1.6"></script>
+    <script type="module" src="admin.js?v=1.7"></script>
 </body>
 </html>
 

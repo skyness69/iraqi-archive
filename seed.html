@@ -58,19 +58,24 @@ import { auth, db, ADMIN_EMAIL, onAuthStateChanged, collection, addDoc, getDocs,
 const SITES = [
     { title: "Vite",           desc: "Next generation frontend tooling with lightning fast HMR and ES module support.",             url: "https://vitejs.dev",              category: "Frontend" },
     { title: "React",          desc: "The library for building component-based user interfaces for web and native apps.",           url: "https://react.dev",               category: "Frontend" },
-    { title: "Next.js",        desc: "The React framework with hybrid static & server rendering, TypeScript support and more.",     url: "https://nextjs.org",              category: "Framework" },
+    { title: "Next.js",        desc: "The React framework with hybrid static & server rendering, TypeScript support and more.",     url: "https://nextjs.org",              category: "Frontend" },
     { title: "Tailwind CSS",   desc: "A utility-first CSS framework for rapid, consistent UI development without leaving HTML.",    url: "https://tailwindcss.com",         category: "Design" },
-    { title: "Supabase",       desc: "Open source Firebase alternative with Postgres, authentication, storage and edge functions.", url: "https://supabase.com",            category: "Backend" },
-    { title: "Firebase",       desc: "Google's platform for app development with Auth, Firestore, Hosting and Cloud Functions.",   url: "https://firebase.google.com",     category: "Backend" },
-    { title: "Vercel",         desc: "Deploy web projects with zero configuration. The platform built for frontend developers.",    url: "https://vercel.com",              category: "Deployment" },
+    { title: "Supabase",       desc: "Open source Firebase alternative with Postgres, authentication, storage and edge functions.", url: "https://supabase.com",            category: "Infrastructure" },
+    { title: "Firebase",       desc: "Google's platform for app development with Auth, Firestore, Hosting and Cloud Functions.",   url: "https://firebase.google.com",     category: "Infrastructure" },
     { title: "GitHub",         desc: "The world's leading development platform for version control and open source collaboration.", url: "https://github.com",              category: "DevOps" },
-    { title: "MDN Web Docs",   desc: "Comprehensive documentation for web technologies — HTML, CSS, JavaScript and Web APIs.",     url: "https://developer.mozilla.org",   category: "Documentation" },
+    { title: "MDN Web Docs",   desc: "Comprehensive documentation for web technologies — HTML, CSS, JavaScript and Web APIs.",     url: "https://developer.mozilla.org",   category: "Learning" },
     { title: "ChatGPT",        desc: "OpenAI's powerful AI assistant for writing code, debugging, brainstorming and learning.",    url: "https://chatgpt.com",             category: "AI" },
+    { title: "Claude",         desc: "Anthropic's safety-focused AI for long-form reasoning, coding, and creative collaboration.",  url: "https://claude.ai",               category: "AI" },
     { title: "Framer Motion",  desc: "A production-ready animation library for React with a simple and powerful API.",             url: "https://framer.com/motion",       category: "Design" },
-    { title: "Dev.to",         desc: "A community of software developers sharing articles, tutorials, and career advice.",        url: "https://dev.to",                  category: "Community" },
-    { title: "Stack Overflow", desc: "The largest online community for programmers to learn and share their knowledge.",           url: "https://stackoverflow.com",       category: "Community" },
+    { title: "Stack Overflow", desc: "The largest online community for programmers to learn and share their knowledge.",           url: "https://stackoverflow.com",       category: "Learning" },
     { title: "TypeScript",     desc: "Typed superset of JavaScript that compiles to plain JS. Catch errors before runtime.",      url: "https://www.typescriptlang.org",  category: "Frontend" },
-    { title: "Prisma",         desc: "Next-generation ORM for Node.js and TypeScript with an intuitive data model.",              url: "https://prisma.io",               category: "Database" },
+    { title: "Cloudflare",     desc: "Global CDN, DNS, and security suite. The backbone of modern internet performance.",         url: "https://cloudflare.com",          category: "Infrastructure" },
+    { title: "Lucide Icons",   desc: "Beautifully simple, pixel-perfect open-source icons for designers and developers.",          url: "https://lucide.dev",              category: "Design" },
+    { title: "Linear",         desc: "The issue tracker built for speed. Modern project management for high-performance teams.",   url: "https://linear.app",              category: "DevTools" },
+    { title: "Neon DB",        desc: "Serverless Postgres with cold starts in seconds. Scale your database as easily as code.",    url: "https://neon.tech",               category: "Infrastructure" },
+    { title: "Cursor AI",      desc: "An AI-powered code editor built on VS Code. The future of pair programming.",                url: "https://cursor.com",              category: "AI" },
+    { title: "Excildraw",      desc: "Virtual whiteboard for sketching hand-drawn like diagrams. Simple and fast brainstroming.",   url: "https://excalidraw.com",          category: "Design" },
+    { title: "Dribbble",       desc: "The world's leading community for creatives to share, grow, and get hired.",                 url: "https://dribbble.com",            category: "Design" },
 ];
 
 // Render site list
@@ -149,8 +154,18 @@ window.seedAll = async () => {
             failed++;
         }
 
-        // Small delay so UI updates are visible
-        await new Promise(r => setTimeout(r, 150));
+        // Small delay
+        await new Promise(r => setTimeout(r, 100));
+    }
+
+    // --- AUTO SEED CATEGORIES ---
+    try {
+        const uniqueCats = [...new Set(SITES.map(s => s.category))].sort();
+        const CAT_DOC_ID = '--categories-metadata--';
+        await setDoc(doc(db, 'resources', CAT_DOC_ID), { list: uniqueCats });
+        console.log("Categories synced:", uniqueCats);
+    } catch (e) {
+        console.error("Category Sync Failed:", e);
     }
 
     btnText.textContent   = 'Done!';
@@ -158,11 +173,11 @@ window.seedAll = async () => {
 
     result.className = `result ${failed === 0 ? 'success' : 'error'}`;
     result.textContent = failed === 0
-        ? `✓ All ${success} resources added to Firestore! Go check the Explore page.`
-        : `⚠️ ${success} added, ${failed} failed. Check your Firestore rules.`;
+        ? `✓ All ${success} resources and ${[...new Set(SITES.map(s => s.category))].length} Categories added! Return to Explorer.`
+        : `⚠️ ${success} added, ${failed} failed. Check console.`;
 
     if (failed === 0) {
-        setTimeout(() => { window.location.href = 'index.html'; }, 2500);
+        setTimeout(() => { window.location.href = 'index.html'; }, 3000);
     }
 };
 </script>

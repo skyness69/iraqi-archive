@@ -155,37 +155,67 @@ function fetchBugReports() {
 }
 
 function renderBugReports(items) {
-    const tbody = document.getElementById('bugs-tbody');
-    if (!tbody) return;
+    const container = document.getElementById('bugs-container');
+    const badge = document.getElementById('bug-count-badge');
+    if (!container) return;
+
+    if (badge) badge.textContent = `${items.length} Reports`;
 
     if (items.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="3" class="py-20 text-center text-slate-500 font-bold uppercase text-[10px]">No bug reports detected in the stream.</td></tr>';
+        container.innerHTML = `
+            <div class="py-24 text-center">
+                <div class="w-16 h-16 bg-white/5 border border-white/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <svg class="w-6 h-6 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+                <p class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Transmission sequence clear. No anomalies detected.</p>
+            </div>
+        `;
         return;
     }
 
-    tbody.innerHTML = items.map(b => `
-        <tr class="group hover:bg-white/5 border-b border-white/5 transition-colors">
-            <td class="py-6 pl-8">
-                <div class="flex flex-col">
-                    <span class="text-white font-black text-sm">${escHtml(b.user || 'Anon')}</span>
-                    <span class="text-[9px] text-slate-500 font-bold uppercase mt-1">${new Date(b.createdAt).toLocaleDateString()}</span>
+    container.innerHTML = items.map(b => `
+        <div class="p-8 group hover:bg-white/[0.02] transition-all duration-300">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
+                <!-- Info Section -->
+                <div class="flex-1">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-8 h-8 rounded-full bg-[var(--accent-primary)]/10 border border-[var(--accent-primary)]/20 flex items-center justify-center text-[11px] font-black text-[var(--accent-primary)]">
+                            ${(b.user || 'A')[0].toUpperCase()}
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="text-xs font-black text-white leading-none">${escHtml(b.user || 'Anonymous')}</span>
+                            <span class="text-[9px] text-slate-500 font-bold uppercase tracking-wider mt-1">${new Date(b.createdAt).toLocaleString()}</span>
+                        </div>
+                    </div>
+
+                    <h3 class="text-sm font-black text-red-400 mb-3 tracking-tight">${escHtml(b.subject)}</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed max-w-3xl">${escHtml(b.message)}</p>
+
+                    ${b.location ? `
+                        <div class="flex items-center gap-2 mt-5">
+                            <span class="text-[8px] font-black uppercase tracking-widest text-slate-600">Archive Reference</span>
+                            <span class="bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 px-3 py-1 rounded-md text-[9px] font-bold">
+                                ${escHtml(b.location)}
+                            </span>
+                        </div>
+                    ` : ''}
                 </div>
-            </td>
-            <td class="py-6">
-                <div class="flex flex-col max-w-lg">
-                    <span class="text-red-400 font-black text-sm">${escHtml(b.subject)}</span>
-                    <span class="text-xs text-slate-400 mt-2 leading-relaxed">${escHtml(b.message)}</span>
-                    ${b.location ? `<span class="text-[9px] bg-slate-900 border border-white/5 px-2 py-0.5 rounded italic text-slate-500 mt-3 w-fit">Loc: ${escHtml(b.location)}</span>` : ''}
+
+                <!-- Actions Section -->
+                <div class="flex items-center gap-3 shrink-0">
+                    <a href="mailto:${ADMIN_EMAIL}?subject=Re: ${escQ(b.subject)}&body=Regarding your report: %0D%0A%0D%0A${escQ(b.message)}" 
+                       class="flex items-center gap-2 px-5 py-3 rounded-xl bg-white text-black text-[10px] font-black uppercase tracking-widest hover:bg-[var(--accent-primary)] hover:text-black transition-all">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                        Email Entry
+                    </a>
+                    <button onclick="deleteBugReq('${b.id}')" 
+                            class="flex items-center gap-2 px-5 py-3 rounded-xl border border-red-500/20 bg-red-500/5 text-red-400 text-[10px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        Resolve
+                    </button>
                 </div>
-            </td>
-            <td class="py-6 pr-8 text-right">
-                <div class="flex justify-end gap-2">
-                    <a href="mailto:${ADMIN_EMAIL}?subject=Re: ${escQ(b.subject)}&body=User ${escQ(b.user)} reported: %0D%0A%0D%0A${escQ(b.message)}" 
-                       class="btn-accent !py-2 !px-4 !text-[9px] !rounded-lg !bg-white !text-black hover:!bg-red-500 hover:!text-white">EMAIL REPLY</a>
-                    <button onclick="deleteBugReq('${b.id}')" class="!py-2 !px-4 !text-[9px] !rounded-lg border border-red-500/20 bg-red-500/5 text-red-400 font-bold hover:bg-red-500 hover:text-white transition-all">RESOLVE</button>
-                </div>
-            </td>
-        </tr>
+            </div>
+        </div>
     `).join('');
 }
 

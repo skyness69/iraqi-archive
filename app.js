@@ -18,22 +18,21 @@ import { showToast, escHtml, escQ } from './utils.js';
 // ================================================================
 let resources       = [];   
 let categories      = [];   
+const CAT_DOC_ID    = '--categories-metadata--';
 let savedIds        = [];   
 let currentUser     = null;
 let currentCategory = 'All';
 let currentView     = 'Home';
 let currentPage     = 1;
 const ITEMS_PER_PAGE = 12;
-let unsubResources  = null;
-let unsubCategories = null;
+let unsubSync  = null;
 let unsubFavorites  = null;
 
 // ================================================================
 // INIT
 // ================================================================
 document.addEventListener('DOMContentLoaded', () => {
-    startResourcesListener();
-    startCategoriesListener();
+    startDataSync();
     initAuthObserver();
     document.getElementById('search-input')
         ?.addEventListener('input', () => renderResources());
@@ -94,17 +93,29 @@ function updateUIRouting() {
 }
 
 // ================================================================
-// CATEGORIES LISTENER & RENDERING
+// LIVE DATA SYNC (Unified Strategy)
 // ================================================================
-function startCategoriesListener() {
-    if (unsubCategories) unsubCategories();
+function startDataSync() {
+    if (unsubSync) unsubSync();
 
-    unsubCategories = onSnapshot(collection(db, 'categories'), (snap) => {
-        categories = [];
-        snap.forEach(d => categories.push({ id: d.id, ...d.data() }));
-        categories.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+    unsubSync = onSnapshot(collection(db, 'resources'), (snap) => {
+        let allItems = [];
+        snap.forEach(d => allItems.push({ id: d.id, ...d.data() }));
+
+        // 1. Extract Categories from Proxy Doc
+        const catDoc = allItems.find(i => i.id === CAT_DOC_ID);
+        categories = catDoc && catDoc.list ? catDoc.list : [];
+        categories.sort((a,b) => a.localeCompare(b));
         renderCategoryTabs();
-    }, err => console.error('Categories error:', err));
+
+        // 2. Extract Resources (Exclude Proxy Doc)
+        resources = allItems.filter(i => i.id !== CAT_DOC_ID);
+        resources.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+        
+        renderResources();
+    }, err => {
+        console.error('Archive sync failed:', err);
+    });
 }
 
 function renderCategoryTabs() {
@@ -112,52 +123,26 @@ function renderCategoryTabs() {
     if (!container) return;
 
     const allBtn = `<button class="cat-pill ${currentCategory === 'All' ? 'active' : ''}" data-category="All">All Resources</button>`;
-    const catBtns = categories.map(c => `
-        <button class="cat-pill ${currentCategory === c.name ? 'active' : ''}" data-category="${escQ(c.name || '')}">
-            ${escHtml(c.name || '')}
+    const catBtns = categories.map(catName => `
+        <button class="cat-pill ${currentCategory === catName ? 'active' : ''}" data-category="${escQ(catName || '')}">
+            ${escHtml(catName || '')}
         </button>
     `).join('');
 
     container.innerHTML = allBtn + catBtns;
 
-    // Re-bind click events
+    // Bind interaction
     container.querySelectorAll('.cat-pill').forEach(btn => {
-        btn.addEventListener('click', () => {
+        btn.onclick = () => {
             container.querySelectorAll('.cat-pill').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             currentCategory = btn.getAttribute('data-category') || 'All';
             currentPage = 1;
-
-            const grid = document.getElementById('resource-grid');
-            if (grid) {
-                grid.style.opacity = '0';
-                grid.style.transform = 'translateY(10px)';
-                setTimeout(() => {
-                    renderResources();
-                    grid.style.opacity = '1';
-                    grid.style.transform = 'translateY(0)';
-                }, 200);
-            } else {
-                renderResources();
-            }
-        });
+            renderResources();
+        };
     });
 }
 
-// ================================================================
-// GLOBAL RESOURCES LISTENER  (resources/)
-// Whenever admin adds/removes â†’ all users see it live
-// ================================================================
-function startResourcesListener() {
-    if (unsubResources) unsubResources();
-
-    unsubResources = onSnapshot(collection(db, 'resources'), (snap) => {
-        resources = [];
-        snap.forEach(d => resources.push({ id: d.id, ...d.data() }));
-        resources.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
-        renderResources();
-    }, err => console.error('Resources error:', err));
-}
 
 // ================================================================
 // AUTH OBSERVER

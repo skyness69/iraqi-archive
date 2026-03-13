@@ -1,41 +1,37 @@
 /**
  * admin.js — Iraqi Archive Admin Dashboard
  * RESTRICTED: Only accessible by alaidan25@gmail.com
+ * NOTE: CATEGORIES ARE NOW STORED AS A SPECIAL METADATA DOCUMENT IN 'resources' PROXIED FOR PERMISSION STABILITY.
  */
 
 import {
     auth, db, ADMIN_EMAIL,
     onAuthStateChanged, signOut,
     collection, addDoc, deleteDoc, updateDoc, onSnapshot,
-    doc
+    doc, setDoc, getDoc
 } from './firebase-config.js';
 
 import { showToast, escHtml, escQ, shortUrl } from './utils.js';
 
 // Global Vars
 const COL      = 'resources';
-const CAT_COL  = 'categories';
+const CAT_DOC_ID = '--categories-metadata--'; // Special ID in the resources collection
 
 // State
 let categories = [];
 let resources = [];
 let editingCatId = null;
-let unsubRes = null;
-let unsubCat = null;
+let unsubSync = null;
 
 /**
  * START PORTAL
  */
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("IA ADMIN: Booting system...");
-    showToast('Vault Master Portal Online.', 'success');
+    console.log("IA ADMIN: Portal sequence initiated.");
+    showToast('Vault Master: System Online.', 'success');
     
     // Bind Event Listeners
-    document.getElementById('logout-btn')?.addEventListener('click', () => {
-        showToast('Disconnecting...', 'success');
-        signOut(auth);
-    });
-
+    document.getElementById('logout-btn')?.addEventListener('click', () => signOut(auth));
     document.getElementById('add-form')?.addEventListener('submit', handleAddResource);
     document.getElementById('edit-form')?.addEventListener('submit', handleEditResource);
     document.getElementById('cat-form')?.addEventListener('submit', handleCategorySubmit);
@@ -51,7 +47,6 @@ document.addEventListener('DOMContentLoaded', () => {
         switchSection('categories');
     });
 
-    // Close modal on backdrop
     const editModal = document.getElementById('edit-modal');
     editModal?.addEventListener('click', (e) => { if (e.target === editModal) closeEditModal(); });
 
@@ -64,30 +59,24 @@ document.addEventListener('DOMContentLoaded', () => {
 function initMainAuth() {
     onAuthStateChanged(auth, (user) => {
         if (!user) {
-            console.log("IA ADMIN: No session. Redirecting to auth center.");
             window.location.href = 'auth.html';
             return;
         }
 
         const email = user.email ? user.email.toLowerCase() : "";
-        console.log("IA ADMIN: Authenticated as", email);
-
         if (email !== ADMIN_EMAIL.toLowerCase()) {
-            showToast('Access Denied: Unrecognized Signature.', 'error');
+            showToast('Permission Violation: Access Denied.', 'error');
             setTimeout(() => window.location.href = 'index.html', 1500);
             return;
         }
         
         // Grant Access to UI
-        const accessDenied = document.getElementById('access-denied');
-        const dashboard = document.getElementById('dashboard');
-        if (accessDenied) accessDenied.style.display = 'none';
-        if (dashboard) dashboard.style.display = 'block';
-        
+        document.getElementById('access-denied').style.display = 'none';
+        document.getElementById('dashboard').style.display = 'block';
         document.getElementById('admin-email').textContent = user.email;
         document.getElementById('admin-avatar').textContent = user.email[0].toUpperCase();
         
-        startDataListeners();
+        startLiveSync();
     });
 }
 
@@ -114,57 +103,57 @@ function switchSection(name) {
 }
 
 /**
- * DATA SYNC
+ * DATA SYNC (Single Collection Strategy)
  */
-function startDataListeners() {
-    console.log("IA ADMIN: Syncing with Firebase...");
-    if (unsubRes) unsubRes();
-    if (unsubCat) unsubCat();
+function startLiveSync() {
+    console.log("IA ADMIN: Synchronizing archives...");
+    if (unsubSync) unsubSync();
 
-    // Resources Listener
-    unsubRes = onSnapshot(collection(db, COL), (snap) => {
-        resources = [];
-        snap.forEach(d => resources.push({ id: d.id, ...d.data() }));
+    // Listen to the ENTIRE resources collection
+    unsubSync = onSnapshot(collection(db, COL), (snap) => {
+        let allItems = [];
+        snap.forEach(d => allItems.push({ id: d.id, ...d.data() }));
+
+        // 1. Extract Categories from the special metadata doc
+        const catDoc = allItems.find(i => i.id === CAT_DOC_ID);
+        categories = catDoc && catDoc.list ? catDoc.list : [];
+        categories.sort((a,b) => a.localeCompare(b));
+
+        // 2. Extract Resources (exclude the metadata doc)
+        resources = allItems.filter(i => i.id !== CAT_DOC_ID);
         resources.sort((a,b) => (a.title || '').localeCompare(b.title || ''));
-        renderResourcesTable(resources);
-        updateStatsView(resources);
-    }, err => {
-        console.error("Resources Sync Error:", err);
-        showToast('Resource sync disrupted.', 'error');
-    });
 
-    // Categories Listener
-    unsubCat = onSnapshot(collection(db, CAT_COL), (snap) => {
-        categories = [];
-        snap.forEach(d => categories.push({ id: d.id, ...d.data() }));
-        categories.sort((a,b) => (a.name || '').localeCompare(b.name || ''));
+        // 3. Render
+        renderResourcesTable(resources);
         renderCategoriesList(categories);
         updateCategoryOptions(categories);
+        updateStatsView(resources);
+        
     }, err => {
-        console.error("Categories Sync Error:", err);
-        showToast('Category sync disrupted.', 'error');
+        console.error("Sync Error:", err);
+        showToast('Database Access Restricted: Check Firebase Rules.', 'error');
     });
 }
 
 /**
- * CATEGORY OPERATIONS
+ * CATEGORY OPERATIONS (Internal List Strategy)
  */
 function renderCategoriesList(items) {
     const tbody = document.getElementById('category-tbody');
     if (!tbody) return;
 
     if (items.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="2" class="text-center py-20 text-slate-500 font-bold uppercase tracking-widest text-[10px]">No categories found in archives.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="2" class="text-center py-20 text-slate-500 font-bold uppercase tracking-widest text-[10px]">Portal Categories Reset. Initializing...</td></tr>';
         return;
     }
 
-    tbody.innerHTML = items.map(c => `
+    tbody.innerHTML = items.map((catName, index) => `
         <tr class="group hover:bg-white/5 transition-colors">
-            <td class="pl-6"><p style="font-weight:800; color:var(--text-pure); font-size:14px;">${escHtml(c.name)}</p></td>
+            <td class="pl-6"><p style="font-weight:800; color:var(--text-pure); font-size:14px;">${escHtml(catName)}</p></td>
             <td class="pr-6 text-right">
                 <div class="flex justify-end gap-2">
-                    <button onclick="setEditMode('${c.id}','${escQ(c.name)}')" class="btn-accent !py-2 !px-4 !text-[9px] !rounded-lg !bg-slate-800 !text-white hover:!bg-white hover:!text-black">EDIT</button>
-                    <button onclick="deleteCategoryReq('${c.id}','${escQ(c.name)}')" class="!py-2 !px-4 !text-[9px] !rounded-lg border border-red-500/20 bg-red-500/5 text-red-400 font-bold hover:bg-red-500 hover:text-white transition-all">DELETE</button>
+                    <button onclick="setEditMode('${index}','${escQ(catName)}')" class="btn-accent !py-2 !px-4 !text-[9px] !rounded-lg !bg-slate-800 !text-white hover:!bg-white hover:!text-black">EDIT</button>
+                    <button onclick="deleteCategoryReq('${index}','${escQ(catName)}')" class="!py-2 !px-4 !text-[9px] !rounded-lg border border-red-500/20 bg-red-500/5 text-red-400 font-bold hover:bg-red-500 hover:text-white transition-all">DELETE</button>
                 </div>
             </td>
         </tr>
@@ -174,52 +163,52 @@ function renderCategoriesList(items) {
 async function handleCategorySubmit(e) {
     e.preventDefault();
     const nameInput = document.getElementById('c-name');
-    const btnText = document.querySelector('#cat-add-btn span');
-    const name = nameInput?.value.trim();
+    const newName = nameInput?.value.trim();
 
-    if (!name) {
-        showToast('Identification required.', 'error');
-        return;
+    if (!newName) return showToast('Name required.', 'error');
+
+    // Logic: Modify our local array 'categories', then push entire array to Firebase
+    let updatedList = [...categories];
+
+    if (editingCatId !== null) {
+        // Update existing index
+        const idx = parseInt(editingCatId);
+        updatedList[idx] = newName;
+        showToast(`Renaming Category to "${newName}"...`, 'success');
+    } else {
+        // Add new
+        if (updatedList.includes(newName)) return showToast('Category already exists.', 'error');
+        updatedList.push(newName);
+        showToast(`Adding Category "${newName}"...`, 'success');
     }
 
-    if (btnText) btnText.parentElement.disabled = true;
-    const originalLabel = btnText ? btnText.textContent : 'Push';
-    if (btnText) btnText.textContent = 'Syncing...';
-
     try {
-        if (editingCatId) {
-            await updateDoc(doc(db, CAT_COL, editingCatId), { name });
-            showToast(`Update Success: "${name}"`, 'success');
-            clearEditMode();
-        } else {
-            await addDoc(collection(db, CAT_COL), { name, createdAt: new Date().toISOString() });
-            showToast(`Created Category: "${name}"`, 'success');
-        }
-        if (nameInput) nameInput.value = '';
+        // PUSH ENTIRE ARRAY TO FIRESTORE (Metadata Document)
+        // Using the 'resources' collection because we know permissions work there!
+        await setDoc(doc(db, COL, CAT_DOC_ID), { list: updatedList });
+        
+        nameInput.value = '';
+        if (editingCatId !== null) clearEditMode();
+        showToast('Vault Synchronized.', 'success');
     } catch (err) {
-        console.error("CAT ERROR:", err);
-        showToast(`Failure: ${err.message}`, 'error');
-    } finally {
-        if (btnText) {
-            btnText.textContent = originalLabel;
-            btnText.parentElement.disabled = false;
-        }
+        console.error("SYNCCAT ERROR:", err);
+        showToast(`Sync Failed: ${err.message}`, 'error');
     }
 }
 
-window.setEditMode = (id, name) => {
-    editingCatId = id;
+window.setEditMode = (index, name) => {
+    editingCatId = index;
     const nameInput = document.getElementById('c-name');
     const btnText = document.querySelector('#cat-add-btn span');
     
     if (nameInput) nameInput.value = name;
-    if (btnText) btnText.textContent = 'Update Name';
+    if (btnText) btnText.textContent = 'Apply Rename';
     
     if (!document.getElementById('cat-cancel')) {
         const cancel = document.createElement('button');
         cancel.id = 'cat-cancel';
         cancel.type = 'button';
-        cancel.textContent = 'Cancel Edit';
+        cancel.textContent = 'Discard Edit';
         cancel.className = 'w-full mt-4 text-[10px] font-black uppercase tracking-tighter text-slate-500 hover:text-white transition-colors';
         cancel.onclick = clearEditMode;
         document.getElementById('cat-form')?.appendChild(cancel);
@@ -236,11 +225,12 @@ function clearEditMode() {
     document.getElementById('cat-cancel')?.remove();
 }
 
-window.deleteCategoryReq = (id, name) => {
-    if (confirm(`PURGE AUTHORIZATION REQUIRED:\nDelete "${name}" category?`)) {
-        deleteDoc(doc(db, CAT_COL, id))
+window.deleteCategoryReq = (index, name) => {
+    if (confirm(`Remove "${name}"? Existing resources for this section will lose their tag.`)) {
+        let updatedList = categories.filter((_, i) => i !== parseInt(index));
+        setDoc(doc(db, COL, CAT_DOC_ID), { list: updatedList })
             .then(() => showToast(`Category Purged.`, 'success'))
-            .catch(err => showToast(`Purge Failed: ${err.message}`, 'error'));
+            .catch(err => showToast(`Sync Failed: ${err.message}`, 'error'));
     }
 };
 
@@ -255,7 +245,7 @@ function renderResourcesTable(items) {
     countLabel.textContent = `${items.length} ARCHIVED`;
 
     if (items.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="3" class="text-center py-24 text-slate-500 uppercase font-black text-xs tracking-widest">No artifacts found. Database is currently inert.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="3" class="text-center py-24 text-slate-500 uppercase font-black text-xs tracking-widest">No artifacts found.</td></tr>';
         return;
     }
 
@@ -288,16 +278,10 @@ async function handleAddResource(e) {
     const url = document.getElementById('f-url')?.value.trim();
     const category = document.getElementById('f-category')?.value;
 
-    if (!title || !desc || !url || !category) {
-        showToast('All parameters required.', 'error');
-        return;
-    }
+    if (!title || !desc || !url || !category) return showToast('All parameters required.', 'error');
     
     try {
-        await addDoc(collection(db, COL), { 
-            title, desc, url, category, 
-            addedAt: new Date().toISOString() 
-        });
+        await addDoc(collection(db, COL), { title, desc, url, category, addedAt: new Date().toISOString() });
         document.getElementById('add-form')?.reset();
         showToast(`Deployment Success: "${title}"`, 'success');
     } catch (err) {
@@ -336,7 +320,7 @@ async function handleEditResource(e) {
 }
 
 window.reqDeleteResource = (id, title) => {
-    if (confirm(`CONFIRM DESTRUCTION:\nPurge "${title}" from the public archive?`)) {
+    if (confirm(`Delete "${title}"?`)) {
         deleteDoc(doc(db, COL, id))
             .then(() => showToast(`Artifact Purged.`, 'success'))
             .catch(err => showToast(`Purge Failure: ${err.message}`, 'error'));
@@ -359,7 +343,7 @@ function updateCategoryOptions(cats) {
 
     const html = `
         <option value="">-- SELECT SECTION --</option>
-        ${cats.map(c => `<option value="${escHtml(c.name)}">${escHtml(c.name)}</option>`).join('')}
+        ${cats.map(cName => `<option value="${escHtml(cName)}">${escHtml(cName)}</option>`).join('')}
     `;
     fCat.innerHTML = html;
     eCat.innerHTML = html;

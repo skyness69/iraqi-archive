@@ -79,7 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
 function initMainAuth() {
     onAuthStateChanged(auth, (user) => {
         if (!user) {
-            window.location.href = 'auth.html';
+            window.location.href = 'auth.html?mode=login';
             return;
         }
 

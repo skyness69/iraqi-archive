@@ -59,7 +59,14 @@ const errorMessages = {
 };
 
 // --- AUTH STATE OBSERVER ---
-onAuthStateChanged(auth, async (user) => {
+    // Check URL parameters for mode
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlMode = urlParams.get('mode');
+    if (urlMode === 'signup' || urlMode === 'login') {
+        switchView(urlMode);
+    }
+
+    onAuthStateChanged(auth, async (user) => {
     if (user) {
         // Critical: Reload user data to get latest verification status
         await user.reload();

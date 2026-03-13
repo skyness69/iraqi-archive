@@ -61,23 +61,18 @@
             <div class="glass-card-report">
                 <form id="bug-form" class="space-y-6">
                     <div>
-                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Your Identifier (Name/Email)</label>
-                        <input type="text" id="b-user" class="form-input-saas" placeholder="e.g. Anon-User-25" required>
+                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Identity (Name/Email)</label>
+                        <input type="text" id="b-user" class="form-input-saas" placeholder="How should we call you?" required>
                     </div>
                     
                     <div>
-                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Issue Subject</label>
-                        <input type="text" id="b-subject" class="form-input-saas" placeholder="e.g. Login page is broken" required>
+                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Subject</label>
+                        <input type="text" id="b-subject" class="form-input-saas" placeholder="Brief summary of the issue" required>
                     </div>
 
                     <div>
-                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Archive Coordinates (URL/Page)</label>
-                        <input type="text" id="b-location" class="form-input-saas" placeholder="e.g. Home Page / Vault" required>
-                    </div>
-
-                    <div>
-                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Detailed Log</label>
-                        <textarea id="b-message" class="form-input-saas h-32 resize-none" placeholder="Explain what happened..." required></textarea>
+                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Description</label>
+                        <textarea id="b-message" class="form-input-saas h-40 resize-none" placeholder="Explain what happened..." required></textarea>
                     </div>
 
                     <button type="submit" id="submit-btn" class="btn-accent w-full py-4 flex items-center justify-center gap-3">
@@ -116,10 +111,9 @@
             
             const user = document.getElementById('b-user').value.trim();
             const subject = document.getElementById('b-subject').value.trim();
-            const location = document.getElementById('b-location').value.trim();
             const message = document.getElementById('b-message').value.trim();
 
-            if (!user || !subject || !message) return showToast('All required fields must be filled.', 'error');
+            if (!user || !subject || !message) return showToast('All fields required.', 'error');
 
             btnText.textContent = 'Transmitting...';
             spinner.style.display = 'block';
@@ -130,7 +124,6 @@
                 await addDoc(collection(db, 'bug_reports'), {
                     user,
                     subject,
-                    location,
                     message,
                     createdAt: new Date().toISOString(),
                     status: 'unread'

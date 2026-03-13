@@ -175,7 +175,7 @@ function renderBugReports(items) {
                 <div class="flex flex-col max-w-lg">
                     <span class="text-red-400 font-black text-sm">${escHtml(b.subject)}</span>
                     <span class="text-xs text-slate-400 mt-2 leading-relaxed">${escHtml(b.message)}</span>
-                    <span class="text-[9px] bg-slate-900 border border-white/5 px-2 py-0.5 rounded italic text-slate-500 mt-3 w-fit">Loc: ${escHtml(b.location || 'Unknown')}</span>
+                    ${b.location ? `<span class="text-[9px] bg-slate-900 border border-white/5 px-2 py-0.5 rounded italic text-slate-500 mt-3 w-fit">Loc: ${escHtml(b.location)}</span>` : ''}
                 </div>
             </td>
             <td class="py-6 pr-8 text-right">

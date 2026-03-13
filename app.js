@@ -379,12 +379,13 @@ function cardTemplate(item) {
     return `
     <div class="resource-card-premium group ${arabicClass}" onclick="showDetails('${item.id}')" dir="${textDir}">
         <!-- Top Row: Icon & Heart -->
-        <div class="card-top-row" style="flex-direction: ${hasArabic ? 'row-reverse' : 'row'}">
+        <div class="card-top-row">
             <div class="card-icon-saas">${initials}</div>
             <button onclick="event.stopPropagation(); handleSave('${item.id}')"
                     id="save-btn-${item.id}"
                     title="${isSaved ? 'Remove' : 'Save'}"
-                    class="heart-btn-saas ${isSaved ? 'saved' : ''}">
+                    class="heart-btn-saas ${isSaved ? 'saved' : ''}"
+                    style="position: relative; top: 0; right: 0; margin-left: auto;">
                 <svg fill="${isSaved ? 'white' : 'none'}" stroke="${isSaved ? 'white' : 'var(--text-muted)'}"
                      stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round"

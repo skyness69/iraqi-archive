@@ -421,7 +421,7 @@ window.reqDeleteResource = (id, title) => {
 
 function updateStatsView(items) {
     document.getElementById('stat-total').textContent = items.length;
-    document.getElementById('stat-cats').textContent = new Set(items.map(r => r.category)).size;
+    document.getElementById('stat-cats').textContent = categories.length;
     document.getElementById('stat-date').textContent = new Date().toLocaleDateString('en-GB', { day:'numeric', month:'short' });
 }
 

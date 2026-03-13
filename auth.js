@@ -65,12 +65,13 @@ onAuthStateChanged(auth, async (user) => {
         await user.reload();
         
         if (user.emailVerified) {
-            if (mode !== 'reset') {
+            // Only redirect if NOT in special modes
+            if (mode !== 'reset' && mode !== 'verify') {
                 window.location.href = 'index.html';
             }
         } else {
             // User is logged in but NOT verified
-            switchView('verify');
+            if (mode !== 'verify') switchView('verify');
         }
     } else {
         // If not logged in and we are in verify mode, go back to login

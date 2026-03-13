@@ -71,13 +71,23 @@ function handleHashChange() {
 function updateUIRouting() {
     const sectionHome = document.getElementById('section-home');
     const sectionVault = document.getElementById('section-vault');
+    const navExplore = document.getElementById('nav-explore');
+    const navFavorites = document.getElementById('nav-favorites');
 
     if (currentView === 'Vault') {
         sectionHome?.classList.add('hidden');
         sectionVault?.classList.remove('hidden');
+        
+        // Active link highlighting
+        navExplore?.classList.replace('text-[var(--text-pure)]', 'text-slate-400');
+        navFavorites?.classList.replace('text-slate-400', 'text-white');
     } else {
         sectionHome?.classList.remove('hidden');
         sectionVault?.classList.add('hidden');
+
+        // Active link highlighting
+        navExplore?.classList.replace('text-slate-400', 'text-[var(--text-pure)]');
+        navFavorites?.classList.replace('text-white', 'text-slate-400');
     }
 }
 
@@ -177,6 +187,7 @@ function updateNavUI(user) {
     const navAdmin     = document.getElementById('nav-admin');
     const avatarEl     = document.getElementById('user-avatar');
     const nameEl       = document.getElementById('user-display-name');
+    const heroActions  = document.getElementById('hero-actions');
 
     // Mobile drawer elements
     const mobGuest     = document.getElementById('mob-guest-view');
@@ -190,7 +201,9 @@ function updateNavUI(user) {
     if (user) {
         guestView?.classList.add('hidden');
         userView?.classList.remove('hidden');
-        userView?.classList.add('flex'); // Keep flex on desktop
+        userView?.classList.add('flex');
+        heroActions?.classList.remove('hidden');
+        heroActions?.classList.add('flex');
 
         if (navFavorites) { 
             navFavorites.classList.remove('hidden'); 
@@ -233,6 +246,9 @@ function updateNavUI(user) {
         mobUser?.classList.add('hidden');
         if (mobFav)    mobFav.style.display = 'none';
         if (mobAdmin)  mobAdmin.style.display = 'none';
+
+        heroActions?.classList.add('hidden');
+        heroActions?.classList.remove('flex');
     }
 }
 

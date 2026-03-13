@@ -16,17 +16,17 @@ import { showToast, escHtml, escQ } from './utils.js';
 // ================================================================
 // STATE
 // ================================================================
-let resources       = [];   
-let categories      = [];   
-const CAT_DOC_ID    = '--categories-metadata--';
-let savedIds        = [];   
-let currentUser     = null;
+let resources = [];
+let categories = [];
+const CAT_DOC_ID = '--categories-metadata--';
+let savedIds = [];
+let currentUser = null;
 let currentCategory = 'All';
-let currentView     = 'Home';
-let currentPage     = 1;
+let currentView = 'Home';
+let currentPage = 1;
 const ITEMS_PER_PAGE = 12;
-let unsubSync  = null;
-let unsubFavorites  = null;
+let unsubSync = null;
+let unsubFavorites = null;
 
 // ================================================================
 // INIT
@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
 function initRouting() {
     const navFavorites = document.getElementById('nav-favorites');
     const navExplore = document.getElementById('nav-explore');
-    
+
     // Hash-based routing
     window.addEventListener('hashchange', handleHashChange);
     handleHashChange(); // Check on load
@@ -78,7 +78,7 @@ function updateUIRouting() {
     if (currentView === 'Vault') {
         sectionHome?.classList.add('hidden');
         sectionVault?.classList.remove('hidden');
-        
+
         // Active link highlighting
         navExplore?.classList.replace('text-[var(--text-pure)]', 'text-slate-400');
         navFavorites?.classList.replace('text-slate-400', 'text-white');
@@ -105,13 +105,13 @@ function startDataSync() {
         // 1. Extract Categories from Proxy Doc
         const catDoc = allItems.find(i => i.id === CAT_DOC_ID);
         categories = catDoc && catDoc.list ? catDoc.list : [];
-        categories.sort((a,b) => a.localeCompare(b));
+        categories.sort((a, b) => a.localeCompare(b));
         renderCategoryTabs();
 
         // 2. Extract Resources (Exclude Proxy Doc)
         resources = allItems.filter(i => i.id !== CAT_DOC_ID);
         resources.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
-        
+
         renderResources();
     }, err => {
         console.error('Archive sync failed:', err);
@@ -154,7 +154,7 @@ function initAuthObserver() {
 
         if (user) {
             currentUser = user;
-            
+
             if (!user.emailVerified) {
                 // If on main page, force them to verification screen
                 if (!isAuthPage) {
@@ -172,7 +172,7 @@ function initAuthObserver() {
             startFavoritesListener(user.uid);
         } else {
             currentUser = null;
-            savedIds    = [];
+            savedIds = [];
             if (unsubFavorites) unsubFavorites();
             verifyBanner?.classList.add('hidden');
             updateNavUI(null);
@@ -203,22 +203,22 @@ function startFavoritesListener(uid) {
 // NAV UI
 // ================================================================
 function updateNavUI(user) {
-    const guestView    = document.getElementById('guest-view');
-    const userView     = document.getElementById('user-view');
+    const guestView = document.getElementById('guest-view');
+    const userView = document.getElementById('user-view');
     const navFavorites = document.getElementById('nav-favorites');
-    const navAdmin     = document.getElementById('nav-admin');
-    const avatarEl     = document.getElementById('user-avatar');
-    const nameEl       = document.getElementById('user-display-name');
-    const heroActions  = document.getElementById('hero-actions');
+    const navAdmin = document.getElementById('nav-admin');
+    const avatarEl = document.getElementById('user-avatar');
+    const nameEl = document.getElementById('user-display-name');
+    const heroActions = document.getElementById('hero-actions');
 
     // Mobile drawer elements
-    const mobGuest     = document.getElementById('mob-guest-view');
-    const mobUser      = document.getElementById('mob-user-view');
-    const mobAvatar    = document.getElementById('mob-user-avatar');
-    const mobName      = document.getElementById('mob-user-name');
-    const mobFav       = document.getElementById('mob-nav-favorites');
-    const mobAdmin     = document.getElementById('mob-nav-admin');
-    const mobLogout    = document.getElementById('mob-logout-btn');
+    const mobGuest = document.getElementById('mob-guest-view');
+    const mobUser = document.getElementById('mob-user-view');
+    const mobAvatar = document.getElementById('mob-user-avatar');
+    const mobName = document.getElementById('mob-user-name');
+    const mobFav = document.getElementById('mob-nav-favorites');
+    const mobAdmin = document.getElementById('mob-nav-admin');
+    const mobLogout = document.getElementById('mob-logout-btn');
 
     if (user) {
         guestView?.classList.add('hidden');
@@ -227,33 +227,33 @@ function updateNavUI(user) {
         heroActions?.classList.remove('hidden');
         heroActions?.classList.add('flex');
 
-        if (navFavorites) { 
-            navFavorites.classList.remove('hidden'); 
+        if (navFavorites) {
+            navFavorites.classList.remove('hidden');
             navFavorites.style.display = 'flex'; // Changed to flex to match Tailwind
-            navFavorites.href = '#vault'; 
+            navFavorites.href = '#vault';
         }
         if (navAdmin) {
             const isAdmin = user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
             navAdmin.classList.toggle('hidden', !isAdmin);
             if (isAdmin) navAdmin.style.display = 'flex';
         }
-        
+
         if (avatarEl) avatarEl.textContent = user.email[0].toUpperCase();
-        if (nameEl)   nameEl.textContent   = user.email.split('@')[0];
+        if (nameEl) nameEl.textContent = user.email.split('@')[0];
 
         // Mobile drawer
         mobGuest?.classList.add('hidden');
         mobUser?.classList.remove('hidden');
         mobUser?.classList.add('flex');
         if (mobAvatar) mobAvatar.textContent = user.email[0].toUpperCase();
-        if (mobName)   mobName.textContent   = user.email.split('@')[0];
-        if (mobFav)    mobFav.style.display = 'block';
-        if (mobAdmin)  mobAdmin.style.display = user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase() ? 'block' : 'none';
+        if (mobName) mobName.textContent = user.email.split('@')[0];
+        if (mobFav) mobFav.style.display = 'block';
+        if (mobAdmin) mobAdmin.style.display = user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase() ? 'block' : 'none';
 
     } else {
         guestView?.classList.remove('hidden');
         userView?.classList.add('hidden');
-        
+
         // Keep favorites link visible on desktop for 'official' look
         if (navFavorites) {
             navFavorites.classList.remove('hidden');
@@ -266,8 +266,8 @@ function updateNavUI(user) {
         mobGuest?.classList.remove('hidden');
         mobGuest?.classList.add('flex');
         mobUser?.classList.add('hidden');
-        if (mobFav)    mobFav.style.display = 'none';
-        if (mobAdmin)  mobAdmin.style.display = 'none';
+        if (mobFav) mobFav.style.display = 'none';
+        if (mobAdmin) mobAdmin.style.display = 'none';
 
         heroActions?.classList.add('hidden');
         heroActions?.classList.remove('flex');
@@ -281,7 +281,7 @@ function updateNavUI(user) {
 function renderResources() {
     const homeGrid = document.getElementById('resource-grid');
     const vaultGrid = document.getElementById('vault-grid');
-    
+
     // Choose which grid to render into based on view
     const grid = currentView === 'Vault' ? vaultGrid : homeGrid;
     if (!grid) return;
@@ -294,12 +294,12 @@ function renderResources() {
         if (currentView === 'Vault') {
             return savedIds.includes(r.id);
         }
-        
+
         // If in Home, apply normal filters
         const matchesCat = currentCategory === 'All' ||
-                          (r.category || '').toLowerCase() === currentCategory.toLowerCase();
+            (r.category || '').toLowerCase() === currentCategory.toLowerCase();
         const matchesSearch = (r.title || '').toLowerCase().includes(term) ||
-                             (r.desc  || '').toLowerCase().includes(term);
+            (r.desc || '').toLowerCase().includes(term);
         return matchesCat && matchesSearch;
     });
 
@@ -338,7 +338,7 @@ function renderPagination(totalPages, totalItems) {
     let pages = '';
     const maxVisible = 5;
     let start = Math.max(1, currentPage - Math.floor(maxVisible / 2));
-    let end   = Math.min(totalPages, start + maxVisible - 1);
+    let end = Math.min(totalPages, start + maxVisible - 1);
     if (end - start < maxVisible - 1) start = Math.max(1, end - maxVisible + 1);
 
     if (start > 1) pages += `<button class="page-btn" onclick="goToPage(1)">1</button>${start > 2 ? '<span class="page-ellipsis">…</span>' : ''}`;
@@ -368,12 +368,12 @@ function isArabic(text) {
 }
 
 function cardTemplate(item) {
-    const isSaved  = savedIds.includes(item.id);
+    const isSaved = savedIds.includes(item.id);
     const initials = (item.title || '?')[0].toUpperCase();
     const desc = (item.desc || '').length > 90 ? item.desc.slice(0, 90) + '…' : (item.desc || '');
 
     const hasArabic = isArabic(item.title || '') || isArabic(item.desc || '');
-    const textDir   = hasArabic ? 'rtl' : 'ltr';
+    const textDir = hasArabic ? 'rtl' : 'ltr';
     const arabicClass = hasArabic ? 'arabic-text' : '';
 
     return `
@@ -417,7 +417,7 @@ window.handleSave = async (resourceId) => {
     }
 
     const favDocRef = doc(db, 'users', currentUser.uid, 'favorites', resourceId);
-    const isSaved   = savedIds.includes(resourceId);
+    const isSaved = savedIds.includes(resourceId);
 
     try {
         if (isSaved) {
@@ -427,11 +427,11 @@ window.handleSave = async (resourceId) => {
             // Save â€” include full resource snapshot so vault doesn't need resources[]
             const resource = resources.find(r => r.id === resourceId);
             await setDoc(favDocRef, {
-                title:     resource?.title    || '',
-                desc:      resource?.desc     || '',
-                url:       resource?.url      || '',
-                category:  resource?.category || '',
-                savedAt:   new Date().toISOString()
+                title: resource?.title || '',
+                desc: resource?.desc || '',
+                url: resource?.url || '',
+                category: resource?.category || '',
+                savedAt: new Date().toISOString()
             });
         }
         // onSnapshot fires â†’ savedIds updates â†’ renderArchive() re-runs automatically
@@ -460,7 +460,7 @@ function initThemeSystem() {
     toggle.addEventListener('click', () => {
         const current = document.documentElement.getAttribute('data-theme');
         const next = current === 'dark' ? 'light' : 'dark';
-        
+
         document.documentElement.setAttribute('data-theme', next);
         localStorage.setItem('ia-theme', next);
         updateThemeIcon(next);
@@ -470,7 +470,7 @@ function initThemeSystem() {
 function updateThemeIcon(theme) {
     const toggle = document.getElementById('theme-toggle');
     if (!toggle) return;
-    
+
     // Moon for dark, Sun for light
     if (theme === 'dark') {
         toggle.innerHTML = `<svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>`;
@@ -485,7 +485,7 @@ function updateThemeIcon(theme) {
 function initDetailsModal() {
     const modal = document.getElementById('details-modal');
     const closeBtn = document.getElementById('close-details');
-    
+
     closeBtn?.addEventListener('click', () => modal.classList.remove('open'));
     modal?.addEventListener('click', (e) => {
         if (e.target === modal) modal.classList.remove('open');

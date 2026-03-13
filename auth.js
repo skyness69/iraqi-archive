@@ -45,6 +45,10 @@ const refreshVerifyBtn = document.getElementById('refresh-verify-btn');
 const resendVerifyBtn = document.getElementById('resend-verify-btn');
 const verifyBackToLogin = document.getElementById('verify-back-to-login');
 
+const togglePasswordBtn = document.getElementById('toggle-password');
+const eyeOpenPaths = document.querySelectorAll('.eye-open');
+const eyeClosedPaths = document.querySelectorAll('.eye-closed');
+
 let mode = 'login'; // 'login', 'signup', 'reset', or 'verify'
 
 // --- ERROR MAPPING ---
@@ -99,6 +103,16 @@ verifyBackToLogin?.addEventListener('click', () => {
 toggleBtn?.addEventListener('click', (e) => {
     e.preventDefault();
     switchView(mode === 'login' ? 'signup' : 'login');
+});
+
+// --- PASSWORD VISIBILITY TOGGLE ---
+togglePasswordBtn?.addEventListener('click', () => {
+    const isPassword = passwordInput.type === 'password';
+    passwordInput.type = isPassword ? 'text' : 'password';
+    
+    // Toggle icons
+    eyeOpenPaths.forEach(p => p.classList.toggle('hidden', !isPassword));
+    eyeClosedPaths.forEach(p => p.classList.toggle('hidden', isPassword));
 });
 
 refreshVerifyBtn?.addEventListener('click', async () => {

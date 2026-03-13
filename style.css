@@ -645,6 +645,36 @@ h1, h2, h3 {
     font-family: 'Cairo', 'Inter', sans-serif;
 }
 
+.password-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-wrapper input {
+    padding-left: 48px; /* Extra padding for the toggle icon on the left for RTL */
+}
+
+.toggle-password-btn {
+    position: absolute;
+    left: 12px;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    transition: all 0.2s;
+    z-index: 5;
+}
+
+.toggle-password-btn:hover {
+    color: var(--accent-primary);
+}
+
 .form-group input:focus {
     border-color: var(--accent-primary);
     box-shadow: 0 0 0 3px var(--accent-glow);

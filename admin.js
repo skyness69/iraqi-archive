@@ -16,6 +16,10 @@ import { showToast, escHtml, escQ, shortUrl } from './utils.js';
 const COL      = 'resources';
 const CAT_COL  = 'categories';
 
+// Boot signal
+showToast('Portal Online. Syncing with Iraqi Archive...', 'success');
+console.log('IA Portal: Modules initialized.');
+
 // ================================================================
 // DOM REFERENCES
 // ================================================================
@@ -368,28 +372,35 @@ async function handleAddCategory(e) {
     e.preventDefault();
     const nameInput = document.getElementById('c-name');
     const btn = document.getElementById('cat-add-btn');
-    const name = nameInput.value.trim();
+    const name = nameInput?.value.trim();
 
-    if (!name) return;
+    if (!name) {
+        showToast('Please enter a category name.', 'error');
+        return;
+    }
 
     btn.disabled = true;
     const originalText = btn.innerHTML;
-    btn.innerHTML = 'Processing...';
+    btn.innerHTML = 'Syncing...';
+    
+    showToast('Updating categories database...', 'success');
 
     try {
         if (editingCatId) {
-            // Update mode
             await updateDoc(doc(db, CAT_COL, editingCatId), { name });
-            showToast(`Category updated to "${name}"`, 'success');
+            showToast(`Category updated successfully!`, 'success');
             cancelEditCategory();
         } else {
-            // Add mode
-            await addDoc(collection(db, CAT_COL), { name });
-            showToast(`Category "${name}" created!`, 'success');
+            await addDoc(collection(db, CAT_COL), { 
+                name,
+                createdAt: new Date().toISOString()
+            });
+            showToast(`"${name}" created!`, 'success');
         }
-        nameInput.value = '';
+        if (nameInput) nameInput.value = '';
     } catch (err) {
-        showToast('Operation failed: ' + err.message, 'error');
+        console.error('Cat Add/Update Error:', err);
+        showToast('Database Error: ' + err.message, 'error');
     } finally {
         btn.disabled = false;
         btn.innerHTML = originalText;

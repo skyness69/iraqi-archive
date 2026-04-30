@@ -1,0 +1,116 @@
+<html lang="ar" data-theme="dark" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل الدخول | الأرشيف العراقي</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="icon" type="image/png" sizes="512x512" href="favicon-512.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="favicon-512.png">
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css?v=4.0">
+</head>
+<body class="auth-theme-wrapper">
+
+    <div class="auth-card">
+        <!-- Back Link -->
+        <a href="index.html" class="back-link">
+            <svg style="width: 18px; margin-left: 8px; transform: scaleX(-1);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+            </svg>
+            العودة للأرشيف
+        </a>
+
+        <!-- Header -->
+        <div class="logo-icon">IA</div>
+        <h1 id="auth-title">مرحباً بعودتك.</h1>
+        <p id="auth-subtitle" class="subtitle">يرجى إدخال بياناتك للوصول إلى الخزنة.</p>
+
+        <!-- Error/Success Message Divs -->
+        <div id="error-message" class="error-div hidden"></div>
+        <div id="success-message" class="success-div hidden"></div>
+
+        <!-- Auth Form (Login/Signup) -->
+        <form id="auth-form">
+            <div class="form-group">
+                <label for="email">البريد الإلكتروني</label>
+                <input type="email" id="email" placeholder="name@identity.com" required>
+            </div>
+            
+            <div id="password-group" class="form-group">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <label for="password">رمز الأمان</label>
+                    <button type="button" id="forgot-password-link" class="toggle-btn" style="font-size: 10px; margin-bottom: 8px; text-decoration: none;">هل نسيت الرمز؟</button>
+                </div>
+                <div class="password-wrapper">
+                    <input type="password" id="password" placeholder="أدخل كلمة المرور" required>
+                    <button type="button" id="toggle-password" class="toggle-password-btn" title="Toggle Password Visibility">
+                        <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path class="eye-open" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path class="eye-open" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            <path class="eye-closed hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <button type="submit" id="submit-btn" class="submit-btn">
+                <span id="btn-text">تسجيل الدخول</span>
+                <div id="btn-spinner" class="spinner hidden"></div>
+            </button>
+        </form>
+
+        <!-- Reset Password View (Hidden by default) -->
+        <div id="reset-view" class="hidden animate-in">
+            <div class="form-group">
+                <label for="reset-email">البريد الإلكتروني المخصص للاسترداد</label>
+                <input type="email" id="reset-email" placeholder="name@identity.com">
+            </div>
+            <button id="send-reset-btn" class="submit-btn">
+                <span id="reset-btn-text">إرسال رابط استعادة الرمز</span>
+                <div id="reset-btn-spinner" class="spinner hidden"></div>
+            </button>
+            <button id="back-to-login" class="toggle-btn" style="width: 100%; margin-top: 24px; text-decoration: none; font-size: 12px;">العودة للدخول</button>
+        </div>
+
+        <!-- Verification Required View -->
+        <div id="verify-view" class="hidden animate-in text-center">
+            <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; padding: 30px; margin-bottom: 24px;">
+                <div class="logo-box">IA</div>
+                <h3 style="font-weight: 800; color: #fff; margin-bottom: 10px;">تم إرسال رابط التحقق.</h3>
+                <p style="font-size: 13px; color: #888; line-height: 1.6;">تم إرسال رابط تأكيد الهوية إلى بريدك الإلكتروني. الرجاء الضغط على الرابط لتفعيل الهوية.</p>
+            </div>
+            <button id="refresh-verify-btn" class="submit-btn">
+                <span>تحديث الحالة</span>
+            </button>
+            <button id="resend-verify-btn" class="toggle-btn" style="width: 100%; margin-top: 16px; text-decoration: none; font-size: 11px;">إعادة إرسال رمز التحقق</button>
+            
+            <!-- Spam Helper Section -->
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px border-dashed rgba(255,255,255,0.05);">
+                <p style="font-size: 10px; font-weight: 800; color: #555; text-transform: uppercase; margin-bottom: 12px;">لم تصلك الرسالة؟</p>
+                <div class="glass-card-saas" style="padding: 15px; text-align: right; font-size: 11px; line-height: 1.6; border-radius: 12px;">
+                    <span style="color: var(--accent-primary);">1. تفقد البريد غير الهام (Spam):</span> ابحث عن رسالة بإسم "noreply" أو "Iraqi Archive".<br>
+                    <span style="color: var(--accent-primary);">2. تحديد كرسالة آمنة:</span> إضغط على "Not Spam" لضمان وصول الرسائل فوراً في المستقبل.<br>
+                    <span style="color: #888;">3. الإنتظار لدقيقتان:</span> في بعض الأحيان تكون الخوادم مشغولة بإرسال الرسائل لمستخدمين آخرين.
+                </div>
+            </div>
+
+            <button id="verify-back-to-login" class="toggle-btn" style="width: 100%; margin-top: 10px; text-decoration: none; font-size: 11px; opacity: 0.5;">العودة للدخول</button>
+        </div>
+
+        <!-- Footer Toggle -->
+        <div class="toggle-area">
+            <span id="toggle-prompt" style="font-size: 12px;">مستخدم جديد للأرشيف؟</span>
+            <button id="toggle-auth" class="toggle-btn" style="font-size: 12px;">التسجيل الآن</button>
+        </div>
+    </div>
+
+    <!-- Firebase Logic -->
+    <script type="module" src="auth.js"></script>
+</body>
+</html>
+
+
+
+
+
